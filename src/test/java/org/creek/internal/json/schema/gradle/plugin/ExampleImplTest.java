@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.creek.internal.example;
+package org.creek.internal.json.schema.gradle.plugin;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;

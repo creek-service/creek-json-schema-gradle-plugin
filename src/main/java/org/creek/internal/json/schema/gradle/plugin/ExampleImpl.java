@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.creek.internal.example;
+package org.creek.internal.json.schema.gradle.plugin;
 
 
-import org.creek.api.example.Example;
+import org.creek.api.json.schema.gradle.plugin.Example;
 
 public final class ExampleImpl implements Example {
     private ExampleImpl() {}
