@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-package org.creek.api.example;
+package org.creek.api.json.schema.gradle.plugin;
 
 public interface Example {}
