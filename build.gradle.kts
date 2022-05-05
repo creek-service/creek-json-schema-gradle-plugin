@@ -2,11 +2,11 @@ plugins {
     java
     jacoco
     `maven-publish`
+    `java-gradle-plugin`
     id("com.github.spotbugs") version "5.0.6"                   // https://plugins.gradle.org/plugin/com.github.spotbugs
     id("com.diffplug.spotless") version "6.5.1"                 // https://plugins.gradle.org/plugin/com.diffplug.spotless
     id("pl.allegro.tech.build.axion-release") version "1.13.6"  // https://plugins.gradle.org/plugin/pl.allegro.tech.build.axion-release
     id("com.github.kt3k.coveralls") version "2.12.0"            // https://plugins.gradle.org/plugin/com.github.kt3k.coveralls
-    id("org.javamodularity.moduleplugin") version "1.8.10"      // https://plugins.gradle.org/plugin/org.javamodularity.moduleplugin
 }
 
 project.version = scmVersion.version
@@ -19,12 +19,11 @@ apply(plugin = "com.diffplug.spotless")
 apply(plugin = "com.github.spotbugs")
 apply(plugin = "maven-publish")
 
-group = "org.creek"
+group = "org.creekservice"
 
 java {
     withSourcesJar()
 
-    modularity.inferModulePath.set(false)
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
 }
@@ -42,7 +41,7 @@ repositories {
 }
 
 extra.apply {
-    set("creekVersion", "0.+")
+    set("creekTestVersion", "0.2.0-SNAPSHOT")
     set("spotBugsVersion", "4.6.0")         // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs-annotations
 
     set("log4jVersion", "2.17.2")           // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
@@ -53,7 +52,7 @@ extra.apply {
     set("hamcrestVersion", "2.2")           // https://mvnrepository.com/artifact/org.hamcrest/hamcrest-core
 }
 
-val creekVersion : String by extra
+val creekTestVersion : String by extra
 val guavaVersion : String by extra
 val log4jVersion : String by extra
 val junitVersion: String by extra
@@ -62,9 +61,9 @@ val mockitoVersion: String by extra
 val hamcrestVersion : String by extra
 
 dependencies {
-    testImplementation("org.creek:creek-test-hamcrest:$creekVersion")
-    testImplementation("org.creek:creek-test-util:$creekVersion")
-    testImplementation("org.creek:creek-test-conformity:$creekVersion")
+    testImplementation("org.creekservice:creek-test-hamcrest:$creekTestVersion")
+    testImplementation("org.creekservice:creek-test-util:$creekTestVersion")
+    testImplementation("org.creekservice:creek-test-conformity:$creekTestVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
     testImplementation("org.junit-pioneer:junit-pioneer:$junitPioneerVersion")
@@ -117,6 +116,15 @@ spotbugs {
         reports.create("html") {
             required.set(true)
             setStylesheet("fancy-hist.xsl")
+        }
+    }
+}
+
+gradlePlugin {
+    plugins {
+        register("CreekPlugin") {
+            id = "org.creekservice.json.schema"
+            implementationClass = "org.creekservice.api.json.schema.gradle.plugin.SchemaPlugin"
         }
     }
 }

@@ -14,6 +14,17 @@
  * limitations under the License.
  */
 
-package org.creek.api.json.schema.gradle.plugin;
+package org.creekservice.internal.json.schema.gradle.plugin;
 
-public interface Example {}
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+
+import org.junit.jupiter.api.Test;
+
+class ExampleImplTest {
+
+    @Test
+    void shouldReturnTrue() {
+        assertThat(ExampleImpl.getTrue(), is(true));
+    }
+}

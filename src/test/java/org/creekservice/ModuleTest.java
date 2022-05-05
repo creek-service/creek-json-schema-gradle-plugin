@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 Creek Contributors (https://github.com/creek-service)
+ * Copyright 2022 Creek Contributors (https://github.com/creek-service)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package org.creek.internal.json.schema.gradle.plugin;
+package org.creekservice;
 
 
-import org.creek.api.json.schema.gradle.plugin.Example;
+import org.creekservice.api.test.conformity.ConformityTester;
+import org.creekservice.api.test.conformity.check.CheckModule;
+import org.junit.jupiter.api.Test;
 
-public final class ExampleImpl implements Example {
-    private ExampleImpl() {}
+class ModuleTest {
 
-    public static boolean getTrue() {
-        return true;
+    @Test
+    void shouldConform() {
+        ConformityTester.builder(ModuleTest.class)
+                .withDisabled("Gradle doesn't support modular plugins yet", CheckModule.builder())
+                .check();
     }
 }
