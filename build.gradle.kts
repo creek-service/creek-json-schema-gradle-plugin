@@ -42,6 +42,7 @@ repositories {
 
 extra.apply {
     set("creekTestVersion", "0.2.0-SNAPSHOT")
+    set("creekJsonVersion", "0.2.0-SNAPSHOT")
     set("spotBugsVersion", "4.6.0")         // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs-annotations
 
     set("log4jVersion", "2.17.2")           // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
@@ -53,6 +54,7 @@ extra.apply {
 }
 
 val creekTestVersion : String by extra
+val creekJsonVersion : String by extra
 val guavaVersion : String by extra
 val log4jVersion : String by extra
 val junitVersion: String by extra
@@ -61,6 +63,8 @@ val mockitoVersion: String by extra
 val hamcrestVersion : String by extra
 
 dependencies {
+    // Avoid non-test dependencies in plugins.
+
     testImplementation("org.creekservice:creek-test-hamcrest:$creekTestVersion")
     testImplementation("org.creekservice:creek-test-util:$creekTestVersion")
     testImplementation("org.creekservice:creek-test-conformity:$creekTestVersion")
@@ -74,6 +78,8 @@ dependencies {
     testImplementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
     testRuntimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:$log4jVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+    // The following dependency is only added to trigger the Github Dependency Bot to update creekSystemTestVersion:
+    testRuntimeOnly("org.creekservice:creek-json-schema-generator:$creekJsonVersion")
 }
 
 tasks.compileJava {
@@ -93,6 +99,33 @@ tasks.test {
         showStackTraces = true
     }
 }
+
+gradlePlugin {
+    plugins {
+        register("CreekPlugin") {
+            id = "org.creekservice.json.schema"
+            implementationClass = "org.creekservice.api.json.schema.gradle.plugin.JsonSchemaPlugin"
+        }
+    }
+}
+
+tasks.register("writeVersionFile") {
+    val outputDir = file("$buildDir/generated/resources/version")
+    val versionFile = file("$outputDir/creek-json-schema-generator.version")
+    sourceSets.main.get().output.dir(mapOf("buildBy" to "writeVersionFile"), outputDir)
+
+    inputs.property("executorVersion", creekJsonVersion)
+    outputs.dir(outputDir).withPropertyName("outputDir")
+
+    doLast {
+        outputDir.mkdirs()
+
+        logger.info("Writing creek-system-test-executor version: $creekJsonVersion to $versionFile")
+        versionFile.writeText(creekJsonVersion)
+    }
+}
+
+tasks.processResources {dependsOn(":writeVersionFile")}
 
 spotless {
     java {
@@ -116,15 +149,6 @@ spotbugs {
         reports.create("html") {
             required.set(true)
             setStylesheet("fancy-hist.xsl")
-        }
-    }
-}
-
-gradlePlugin {
-    plugins {
-        register("CreekPlugin") {
-            id = "org.creekservice.json.schema"
-            implementationClass = "org.creekservice.api.json.schema.gradle.plugin.SchemaPlugin"
         }
     }
 }
