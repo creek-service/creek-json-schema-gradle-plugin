@@ -19,6 +19,6 @@ plugins {
     `java-library`
 }
 
-jsonSchema {
+creek.schema.json {
     extraArguments("--echo-only")
 }
