@@ -34,7 +34,7 @@ This will add the tasks below, with default configuration.
 
 The JSON Schema plugin adds the following tasks to your project:
 
-### generateJsonSchema - [`GenerateJsonSchemaTask`][5]
+### generateJsonSchema - [`GenerateJsonSchema`][5]
 
 > ### NOTE
 > Details of how to annotate classes to control their schema can be found in the [Creek JSON Schema Generator docs][1].
@@ -268,7 +268,7 @@ to work with your chosen language. (Consider adding details to [Issue 6][8] if y
 [2]: https://github.com/creek-service/creek-base/blob/main/annotation/src/main/java/org/creekservice/api/base/annotation/schema/GeneratesSchema.java
 [3]: https://github.com/FasterXML/jackson-annotations
 [4]: https://github.com/mbknor/mbknor-jackson-jsonSchema
-[5]: src/main/java/org/creekservice/api/json/schema/gradle/plugin/task/GenerateJsonSchemaTask.java
+[5]: src/main/java/org/creekservice/api/json/schema/gradle/plugin/task/GenerateJsonSchema.java
 [6]: https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:what-are-dependency-configurations
 [7]: https://github.com/creek-service/creek-json-schema/tree/main/generator
 [8]: https://github.com/creek-service/creek-json-schema-gradle-plugin/issues/6

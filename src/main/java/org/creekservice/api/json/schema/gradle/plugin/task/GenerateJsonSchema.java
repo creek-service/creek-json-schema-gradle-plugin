@@ -40,11 +40,11 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 
 /** Task for generating JSON schemas from code */
-public abstract class GenerateJsonSchemaTask extends DefaultTask {
+public abstract class GenerateJsonSchema extends DefaultTask {
 
     final ConfigurableFileCollection classPath = getProject().getObjects().fileCollection();
 
-    public GenerateJsonSchemaTask() {
+    public GenerateJsonSchema() {
 
         classPath.from((Callable<Object>) this::getClassFiles);
         classPath.from((Callable<Object>) this::getGeneratorDeps);
