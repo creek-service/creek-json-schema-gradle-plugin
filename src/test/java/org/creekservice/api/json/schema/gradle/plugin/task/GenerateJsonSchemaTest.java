@@ -52,7 +52,7 @@ import org.junitpioneer.jupiter.cartesian.CartesianTest;
 import org.junitpioneer.jupiter.cartesian.CartesianTest.MethodFactory;
 
 @SuppressWarnings("ConstantConditions")
-class GenerateJsonSchemaTaskTest {
+class GenerateJsonSchemaTest {
 
     // Change this to true locally to debug using attach-me plugin:
     private static final boolean DEBUG = false;

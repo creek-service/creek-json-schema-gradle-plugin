@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.creekservice.api.json.schema.gradle.plugin.task.GenerateJsonSchemaTask;
+import org.creekservice.api.json.schema.gradle.plugin.task.GenerateJsonSchema;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -75,8 +75,8 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
     }
 
     void registerGenerateSchemaTask(final Project project, final JsonSchemaExtension extension) {
-        final GenerateJsonSchemaTask task =
-                project.getTasks().create(GENERATE_SCHEMA_TASK_NAME, GenerateJsonSchemaTask.class);
+        final GenerateJsonSchema task =
+                project.getTasks().create(GENERATE_SCHEMA_TASK_NAME, GenerateJsonSchema.class);
 
         task.setGroup(GROUP_NAME);
         task.getAllowedModules().set(extension.getAllowedModules());
@@ -105,13 +105,13 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
         cfg.defaultDependencies(deps -> deps.add(projectDeps.create(pluginDep)));
 
         project.getTasks()
-                .withType(GenerateJsonSchemaTask.class)
+                .withType(GenerateJsonSchema.class)
                 .configureEach(task -> task.getGeneratorDeps().from(cfg));
     }
 
     private void afterEvaluate(final Project project) {
-        final GenerateJsonSchemaTask generateTask =
-                (GenerateJsonSchemaTask) project.getTasks().getByName(GENERATE_SCHEMA_TASK_NAME);
+        final GenerateJsonSchema generateTask =
+                (GenerateJsonSchema) project.getTasks().getByName(GENERATE_SCHEMA_TASK_NAME);
 
         final SourceSetContainer sourceSetContainer =
                 project.getExtensions().findByType(SourceSetContainer.class);
