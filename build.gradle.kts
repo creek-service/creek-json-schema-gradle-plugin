@@ -181,9 +181,7 @@ publishing {
         }
     }
     publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
-
+        create<MavenPublication>("pluginMaven") {
             pom {
                 url.set("https://github.com/creek-service/${rootProject.name}.git")
             }
