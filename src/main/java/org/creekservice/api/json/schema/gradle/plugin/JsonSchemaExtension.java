@@ -19,81 +19,85 @@ package org.creekservice.api.json.schema.gradle.plugin;
 
 import java.util.List;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 
-public abstract class JsonSchemaExtension {
+public abstract class JsonSchemaExtension implements ExtensionAware {
 
-    /**
-     * An optional list of module names used to limit the generation of schemas to only those
-     * {@code @GeneratesSchema} annotated types within the named modules.
-     *
-     * <p>Allowed module names can include the glob wildcard {@code *} character.
-     *
-     * <p>Setting this will speed up schema generation.
-     *
-     * <p>Default: empty, meaning all modules.
-     */
-    public abstract ListProperty<String> getAllowedModules();
+    private final TypeScanningSpec typeScanning;
+    private final TypeScanningSpec subTypeScanning;
 
-    /**
-     * Set allowed modules.
-     *
-     * <p>See {@link #getAllowedModules()} for more info.
-     *
-     * @param moduleNames the module names to allow.
-     */
-    @SuppressWarnings("unused") // Invoked from Gradle
-    public void allowedModules(final String... moduleNames) {
-        getAllowedModules().set(List.of(moduleNames));
+    public abstract static class TypeScanningSpec {
+
+        /**
+         * An optional list of module names used to limit type scanning to only the specified
+         * modules.
+         *
+         * <p>Allowed module names can include the glob wildcard {@code *} character.
+         *
+         * <p>Default: empty, meaning all modules will be scanned.
+         */
+        public abstract ListProperty<String> getModuleWhiteList();
+
+        /**
+         * Set modules to scan.
+         *
+         * <p>See {@link #getModuleWhiteList()} for more info.
+         *
+         * @param moduleNames the module names to allow.
+         */
+        @SuppressWarnings("unused") // Invoked from Gradle
+        public void moduleWhiteList(final String... moduleNames) {
+            getModuleWhiteList().set(List.of(moduleNames));
+        }
+
+        /**
+         * An optional list of package name used to limit type scanning to only the specified
+         * packages.
+         *
+         * <p>Allowed package names can include the glob wildcard {@code *} character.
+         *
+         * <p>Default: empty, meaning all packages will be scanned.
+         */
+        public abstract ListProperty<String> getPackageWhiteListed();
+
+        /**
+         * Set packages to scan.
+         *
+         * <p>See {@link #getPackageWhiteListed()} for more info.
+         *
+         * @param packageNames the package names to allow.
+         */
+        @SuppressWarnings("unused") // Invoked from Gradle
+        public void packageWhiteList(final String... packageNames) {
+            getPackageWhiteListed().set(List.of(packageNames));
+        }
+    }
+
+    public JsonSchemaExtension() {
+        this.typeScanning = getExtensions().create("typeScanning", TypeScanningSpec.class);
+        this.subTypeScanning = getExtensions().create("subTypeScanning", TypeScanningSpec.class);
     }
 
     /**
-     * An optional list of package name used to limit the generation of schemas to only those
-     * {@code @GeneratesSchema} annotated types under the supplied packages.
+     * Configure type scanning for finding types to generate schema for, i.e. types annotated with
+     * {@code GeneratesSchema}.
      *
-     * <p>Allowed package names can include the glob wildcard {@code *} character.
-     *
-     * <p>Setting this will speed up schema generation.
-     *
-     * <p>Default: empty, meaning all packages.
+     * @return the type scanning config
      */
-    public abstract ListProperty<String> getAllowedBaseTypePackages();
-
-    /**
-     * Set allowed base type packages.
-     *
-     * <p>See {@link #getAllowedBaseTypePackages()} for more info.
-     *
-     * @param packageNames the package names to allow.
-     */
-    @SuppressWarnings("unused") // Invoked from Gradle
-    public void allowedBaseTypePackages(final String... packageNames) {
-        getAllowedBaseTypePackages().set(List.of(packageNames));
+    public TypeScanningSpec getTypeScanning() {
+        return typeScanning;
     }
 
     /**
-     * An optional list of package name used to limit the search for subtypes to only those types
-     * under the supplied packages.
+     * Configure type scanning for finding subtypes, i.e. subtypes of polymorphic types that are
+     * part of base types.
      *
-     * <p>Allowed package names can include the glob wildcard {@code *} character.
-     *
-     * <p>Setting this will speed up schema generation.
-     *
-     * <p>Default: empty, meaning all packages.
+     * @return the type scanning config
      */
-    public abstract ListProperty<String> getAllowedSubTypePackages();
-
-    /**
-     * Set allowed sub type packages.
-     *
-     * <p>See {@link #getAllowedSubTypePackages()} for more info.
-     *
-     * @param packageNames the package names to allow.
-     */
-    @SuppressWarnings("unused") // Invoked from Gradle
-    public void allowedSubTypePackages(final String... packageNames) {
-        getAllowedSubTypePackages().set(List.of(packageNames));
+    public TypeScanningSpec getSubtypeScanning() {
+        return subTypeScanning;
     }
 
     /**

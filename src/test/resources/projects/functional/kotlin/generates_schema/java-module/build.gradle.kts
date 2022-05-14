@@ -24,6 +24,6 @@ dependencies {
     implementation("com.google.guava:guava:31.1-jre")
 }
 
-jsonSchema {
-    allowedModules.set(listOf("acme.models"))
+creek.schema.json {
+    typeScanning.moduleWhiteList.set(listOf("acme.models"))
 }

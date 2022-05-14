@@ -64,17 +64,17 @@ public abstract class GenerateJsonSchema extends DefaultTask {
      * <p>Default: empty, meaning all modules.
      */
     @Input
-    public abstract ListProperty<String> getAllowedModules();
+    public abstract ListProperty<String> getTypeScanningModuleWhiteList();
 
     /** Method to allow setting allowed subtype packages from the command line. */
     @SuppressWarnings("unused") // Invoked by Gradle
     @Option(
-            option = "allowed-module",
+            option = "type-scanning-allowed-module",
             description =
                     "Restricts the search for @GeneratesSchema annotated types "
                             + "to the supplied allowed module name(s)")
-    public void setAllowedModulesFromOption(final List<String> args) {
-        getAllowedModules().set(args);
+    public void setTypeScanningModuleWhiteListFromOption(final List<String> args) {
+        getTypeScanningModuleWhiteList().set(args);
     }
 
     /**
@@ -88,17 +88,41 @@ public abstract class GenerateJsonSchema extends DefaultTask {
      * <p>Default: empty, meaning all packages.
      */
     @Input
-    public abstract ListProperty<String> getAllowedBaseTypePackages();
+    public abstract ListProperty<String> getTypeScanningPackageWhiteList();
 
     /** Method to allow setting allowed subtype packages from the command line. */
     @SuppressWarnings("unused") // Invoked by Gradle
     @Option(
-            option = "allowed-base-type-package",
+            option = "type-scanning-allowed-package",
             description =
                     "Restricts the search for @GeneratesSchema annotated types "
                             + "to under the supplied allowed package name(s)")
-    public void setAllowedBaseTypePackagesFromOption(final List<String> args) {
-        getAllowedBaseTypePackages().set(args);
+    public void setTypeScanningPackageWhiteListFromOption(final List<String> args) {
+        getTypeScanningPackageWhiteList().set(args);
+    }
+
+    /**
+     * An optional list of module name used to limit the search for subtypes to only those types
+     * under the supplied module.
+     *
+     * <p>Allowed module names can include the glob wildcard {@code *} character.
+     *
+     * <p>Setting this will speed up schema generation.
+     *
+     * <p>Default: empty, meaning all modules.
+     */
+    @Input
+    public abstract ListProperty<String> getSubtypeScanningModuleWhiteList();
+
+    /** Method to allow setting allowed subtype modules from the command line. */
+    @SuppressWarnings("unused") // Invoked by Gradle
+    @Option(
+            option = "subtype-scanning-allowed-module",
+            description =
+                    "Restricts the search for subtypes, when none are explicitly defined, "
+                            + "to under the supplied allowed module name(s)")
+    public void setSubtypeScanningModuleWhiteListFromOption(final List<String> args) {
+        getSubtypeScanningModuleWhiteList().set(args);
     }
 
     /**
@@ -112,17 +136,17 @@ public abstract class GenerateJsonSchema extends DefaultTask {
      * <p>Default: empty, meaning all packages.
      */
     @Input
-    public abstract ListProperty<String> getAllowedSubTypePackages();
+    public abstract ListProperty<String> getSubtypeScanningPackageWhiteList();
 
     /** Method to allow setting allowed subtype packages from the command line. */
     @SuppressWarnings("unused") // Invoked by Gradle
     @Option(
-            option = "allowed-sub-type-package",
+            option = "subtype-scanning-allowed-package",
             description =
                     "Restricts the search for subtypes, when none are explicitly defined, "
                             + "to under the supplied allowed package name(s)")
-    public void setAllowedSubTypePackagesFromOption(final List<String> args) {
-        getAllowedSubTypePackages().set(args);
+    public void setSubtypePackageWhiteListFromOption(final List<String> args) {
+        getSubtypeScanningPackageWhiteList().set(args);
     }
 
     /**
@@ -189,7 +213,9 @@ public abstract class GenerateJsonSchema extends DefaultTask {
 
     private void checkDependenciesIncludesRunner() {
         final Configuration configuration =
-                getProject().getConfigurations().getByName(JsonSchemaPlugin.CONFIGURATION_NAME);
+                getProject()
+                        .getConfigurations()
+                        .getByName(JsonSchemaPlugin.GENERATOR_CONFIGURATION_NAME);
         configuration.resolve();
 
         final Optional<Dependency> executorDep =
@@ -216,15 +242,18 @@ public abstract class GenerateJsonSchema extends DefaultTask {
                                 .resolve(getOutputDirectoryName().get())
                                 .toAbsolutePath());
 
-        getAllowedModules().get().forEach(name -> arguments.add("--allowed-module=" + name));
-
-        getAllowedBaseTypePackages()
+        getTypeScanningModuleWhiteList()
                 .get()
-                .forEach(name -> arguments.add("--allowed-base-type-package=" + name));
-
-        getAllowedSubTypePackages()
+                .forEach(name -> arguments.add("--type-scanning-allowed-module=" + name));
+        getTypeScanningPackageWhiteList()
                 .get()
-                .forEach(name -> arguments.add("--allowed-sub-type-package=" + name));
+                .forEach(name -> arguments.add("--type-scanning-allowed-package=" + name));
+        getSubtypeScanningModuleWhiteList()
+                .get()
+                .forEach(name -> arguments.add("--subtype-scanning-allowed-module=" + name));
+        getSubtypeScanningPackageWhiteList()
+                .get()
+                .forEach(name -> arguments.add("--subtype-scanning-allowed-package=" + name));
 
         arguments.addAll(getExtraArguments().get());
         return arguments;
@@ -244,7 +273,7 @@ public abstract class GenerateJsonSchema extends DefaultTask {
         MissingExecutorDependencyException() {
             super(
                     "No JSON schema generator dependency found in "
-                            + JsonSchemaPlugin.CONFIGURATION_NAME
+                            + JsonSchemaPlugin.GENERATOR_CONFIGURATION_NAME
                             + " configuration. Please ensure the configuration contains "
                             + GENERATOR_DEP_GROUP_NAME
                             + ":"

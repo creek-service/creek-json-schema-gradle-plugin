@@ -23,6 +23,6 @@ dependencies {
     jsonSchemaGenerator 'org.apache.logging.log4j:log4j-api:+'
 }
 
-jsonSchema {
+creek.schema.json {
     extraArguments "--echo-only"
 }

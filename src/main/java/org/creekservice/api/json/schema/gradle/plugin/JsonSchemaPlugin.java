@@ -30,6 +30,8 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.plugins.BasePlugin;
+import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -37,13 +39,14 @@ import org.gradle.api.tasks.SourceSetContainer;
 /** Plugin for generating JSON schemas from code */
 public final class JsonSchemaPlugin implements Plugin<Project> {
 
-    public static final String EXTENSION_NAME = "jsonSchema";
-    public static final String CONFIGURATION_NAME = "jsonSchemaGenerator";
+    public static final String CREEK_EXTENSION_NAME = "creek";
+    public static final String SCHEMA_EXTENSION_NAME = "schema";
+    public static final String JSON_EXTENSION_NAME = "json";
+    public static final String GENERATOR_CONFIGURATION_NAME = "jsonSchemaGenerator";
     public static final String GENERATE_SCHEMA_TASK_NAME = "generateJsonSchema";
     public static final String GROUP_NAME = "Creek";
-    public static final List<String> DEFAULT_ALLOWED_MODULES = List.of();
-    public static final List<String> DEFAULT_ALLOWED_BASE_TYPE_PACKAGE = List.of();
-    public static final List<String> DEFAULT_ALLOWED_SUB_TYPE_PACKAGE = List.of();
+    public static final List<String> ALL_MODULES = List.of();
+    public static final List<String> ALL_PACKAGES = List.of();
     public static final String DEFAULT_RESOURCE_ROOT = "generated/resources/schema";
     public static final String DEFAULT_OUTPUT_FOLDER = "schema/json";
     public static final String GENERATOR_DEP_GROUP_NAME = "org.creekservice";
@@ -60,12 +63,17 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
     }
 
     private JsonSchemaExtension registerExtension(final Project project) {
+        final ExtensionAware creekExt =
+                ensureExtension(project, CREEK_EXTENSION_NAME, CreekSpec.class);
+        final ExtensionAware schemaExt =
+                ensureExtension(creekExt, SCHEMA_EXTENSION_NAME, SchemaSpec.class);
         final JsonSchemaExtension extension =
-                project.getExtensions().create(EXTENSION_NAME, JsonSchemaExtension.class);
+                schemaExt.getExtensions().create(JSON_EXTENSION_NAME, JsonSchemaExtension.class);
 
-        extension.getAllowedModules().convention(DEFAULT_ALLOWED_MODULES);
-        extension.getAllowedBaseTypePackages().convention(DEFAULT_ALLOWED_BASE_TYPE_PACKAGE);
-        extension.getAllowedSubTypePackages().convention(DEFAULT_ALLOWED_SUB_TYPE_PACKAGE);
+        extension.getTypeScanning().getModuleWhiteList().convention(ALL_MODULES);
+        extension.getTypeScanning().getPackageWhiteListed().convention(ALL_PACKAGES);
+        extension.getSubtypeScanning().getModuleWhiteList().convention(ALL_MODULES);
+        extension.getSubtypeScanning().getPackageWhiteListed().convention(ALL_PACKAGES);
         extension
                 .getSchemaResourceRoot()
                 .convention(project.getLayout().getBuildDirectory().dir(DEFAULT_RESOURCE_ROOT));
@@ -79,16 +87,20 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
                 project.getTasks().create(GENERATE_SCHEMA_TASK_NAME, GenerateJsonSchema.class);
 
         task.setGroup(GROUP_NAME);
-        task.getAllowedModules().set(extension.getAllowedModules());
-        task.getAllowedBaseTypePackages().set(extension.getAllowedBaseTypePackages());
-        task.getAllowedSubTypePackages().set(extension.getAllowedSubTypePackages());
+        task.getTypeScanningModuleWhiteList().set(extension.getTypeScanning().getModuleWhiteList());
+        task.getTypeScanningPackageWhiteList()
+                .set(extension.getTypeScanning().getPackageWhiteListed());
+        task.getSubtypeScanningModuleWhiteList()
+                .set(extension.getSubtypeScanning().getModuleWhiteList());
+        task.getSubtypeScanningPackageWhiteList()
+                .set(extension.getSubtypeScanning().getPackageWhiteListed());
         task.getSchemaResourceRoot().set(extension.getSchemaResourceRoot());
         task.getOutputDirectoryName().set(extension.getOutputDirectoryName());
         task.getExtraArguments().set(extension.getExtraArguments());
     }
 
     void registerJsonSchemaConfiguration(final Project project) {
-        final Configuration cfg = project.getConfigurations().create(CONFIGURATION_NAME);
+        final Configuration cfg = project.getConfigurations().create(GENERATOR_CONFIGURATION_NAME);
         cfg.setVisible(false);
         cfg.setTransitive(true);
         cfg.setCanBeConsumed(false);
@@ -153,5 +165,28 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
                 .map(taskName -> project.getTasksByName(taskName, false))
                 .flatMap(Set::stream)
                 .collect(Collectors.toUnmodifiableSet());
+    }
+
+    private <T extends ExtensionAware> ExtensionAware ensureExtension(
+            final ExtensionAware extensionAware, final String name, final Class<T> type) {
+        final ExtensionContainer extensions = extensionAware.getExtensions();
+        final Object maybeExt = extensions.findByName(name);
+        if (maybeExt != null) {
+            return (ExtensionAware) maybeExt;
+        }
+
+        return extensions.create(name, type);
+    }
+
+    public abstract static class CreekSpec implements ExtensionAware {
+
+        @Override
+        public abstract ExtensionContainer getExtensions();
+    }
+
+    public abstract static class SchemaSpec implements ExtensionAware {
+
+        @Override
+        public abstract ExtensionContainer getExtensions();
     }
 }

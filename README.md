@@ -53,22 +53,24 @@ Types can be annotated both with [Jackson][3] and [JsonSchema][4] annotations, a
 
 See the [Creel JSON Schema Generator Docs][1] for more information and examples.
 
-Aside from the customisations possible using the [`jsonSchema` extension](#json-schema-extension), the task accepts the
+Aside from the customisations possible using the [`creek.schema.json` extension](#json-schema-extension), the task accepts the
 following command line options:
 
-* `--allowed-module`: (default: any module) restricts the classes to search to only those belonging to the specified module(s).
+* `--type-scanning-allowed-module`: (default: any module) restricts the classes to search to only those belonging to the specified module(s).
   Allowed module names can include the glob wildcard {@code *} character.
-* `--allowed-base-type-package`: (default: any package) restricts the classes to search to only those under the specified package(s).
+* `--type-scanning-allowed-package`: (default: any package) restricts the classes to search to only those under the specified package(s).
   Allowed package names can include the glob wildcard {@code *} character.
-* `--allowed-sub-type-package`: (default: any package) restrict the search for subtypes to only those under the specified package(s).
+* `--subtype-scanning-allowed-module`: (default: any module) restricts the search for subtypes to only those belonging to the specified module(s).
+  Allowed module names can include the glob wildcard {@code *} character.
+* `--subtype-scanning-allowed-package`: (default: any package) restrict the search for subtypes to only those under the specified package(s).
   Allowed package names can include the glob wildcard {@code *} character.
 
 For example, the following limits the class & module path scanning to only two modules:
 
 ```bash
 > ./gradlew generateJsonSchema \
-    --allowed-module=acme.finance.momdel \
-    --allowed-module=acme.sales.model
+    --type-scanning-allowed-module=acme.finance.momdel \
+    --type-scanning-allowed-module=acme.sales.model
 ```
 
 ### clean*TaskName* - `Delete`
@@ -108,52 +110,79 @@ dependencies {
 
 When running a different version of the generator it may be that the generator supports command line options that
 are not exposed by the plugin. In such situations, you can pass extra arguments to the generator using the
-`extraArguments` method of the `jsonSchema` extension.
+`extraArguments` method of the `creek.schema.json` extension.
 
 ##### Groovy: Passing extra arguments to the generator
 ```groovy
-jsonSchema {
-    extraArguments "--some", "--extra=arguments"
+creek {
+    schema {
+        json {
+            extraArguments "--some", "--extra=arguments"
+        }
+    }
 }
 ```
 
 ##### Kotlin: Passing extra arguments to the generator
 ```kotlin
 jsonSchema {
-    extraArguments("--some", "--extra=arguments")
+    schema {
+        json {
+            extraArguments("--some", "--extra=arguments")    
+        }
+    }
 }
 ```
 
 ## JSON Schema Extension
 
-The JSON Schema plugin adds the `jsonSchema` extension. This allows you to configure a number of task related properties
+The JSON Schema plugin adds a `json` extension to `creek.schema`. This allows you to configure a number of task related properties
 inside a dedicated DSL block.
 
-##### Groovy: Using the `jsonSchema` extension
+##### Groovy: Using the `creek.schema.json` extension
 ```groovy
-jsonSchema {
-    // Restrict class scanning to certain JPMS modules:
-    allowedModules 'acme-finance', 'acme-sales-*'
+creek.schema.json {
     
-    // Restrict class scanning for base types to certain packages:
-    allowedBaseTypePackages 'com.acme.finance', 'com.acme.sales.*'
+    // Configure scanning for @GeneratesSchema annotated types:
+    typeScanning {
+        // Restrict scanning to certain JPMS modules:
+        moduleWhiteList 'acme-finance', 'acme-sales-*'
 
-    // Restrict class scanning for subtypes to certain packages:
-    allowedSubTypePackages 'com.acme.finance', 'com.acme.sales.*'
+        // Restrict scanning to certain packages:
+        packageWhiteList 'com.acme.finance', 'com.acme.sales.*'
+    }
+
+    // Configure scanning subtypes:
+    subTypeScanning {
+        // Restrict scanning to certain JPMS modules:
+        moduleWhiteList 'acme-finance', 'acme-sales-*'
+
+        // Restrict class scanning for subtypes to certain packages:
+        packageWhiteList 'com.acme.finance', 'com.acme.sales.*'
+    }
 }
 ```
 
-##### Kotlin: Using the `jsonSchema` extension
+##### Kotlin: Using the `creek.schema.json` extension
 ```kotlin
-jsonSchema {
-    // Restrict class scanning to certain JPMS modules:
-    allowedModules("acme-finance", "acme-sales")
+creek.schema.json {
+    // Configure scanning for @GeneratesSchema annotated types:
+    typeScanning {
+        // Restrict class scanning to certain JPMS modules:
+        moduleWhiteList("acme-finance", "acme-sales-")
 
-    // Restrict class scanning for base types to certain packages:
-    allowedBaseTypePackages("com.acme.finance", "com.acme.sales.*")
-  
-    // Restrict class scanning for subtypes to certain packages:
-    allowedSubTypePackages("com.acme.finance", "com.acme.sales.*")
+        // Restrict class scanning for base types to certain packages:
+        packageWhiteList("com.acme.finance", "com.acme.sales.*")
+    }
+
+    // Configure scanning subtypes:
+    subTypeScanning {
+        // Restrict class scanning to certain JPMS modules:
+        moduleWhiteList("acme-finance", "acme-sales-")
+
+        // Restrict class scanning for subtypes to certain packages:
+        packageWhiteList("com.acme.finance", "com.acme.sales.*")
+    }
 }
 ```
 
@@ -175,33 +204,41 @@ The path scans can be restricted to exclude unwanted types from schema generatio
 Base type scanning, i.e. scanning for types annotated with `@GeneratesSchema`, can be restricted by either supplying
 one or more JPMS modules to scan:
 
-##### Groovy: Restricting modules to scan  for base types
+##### Groovy: Restricting modules to scan for @GeneratesSchema annotated types
 ```groovy
-jsonSchema {
-    allowedModules 'acme-finance', 'acme-sales-*'
+creek.schema.json {
+    typeScanning {
+        moduleWhiteList 'acme-finance', 'acme-sales-*'
+    }
 }
 ```
 
-##### Kotlin: Restricting modules to scan for base types
+##### Kotlin: Restricting modules to scan for @GeneratesSchema annotated types
 ```kotlin
-jsonSchema {
-    allowedModules("acme-finance", "acme-sales")
+creek.schema.json {
+    typeScanning {
+        moduleWhiteList("acme-finance", "acme-sales")
+    }
 }
 ```
 
 ...and/or by restricting which package names to search under:
 
-##### Groovy: Restricting packages to scan for base types
+##### Groovy: Restricting packages to scan for @GeneratesSchema annotated types
 ```groovy
-jsonSchema {
-    allowedBaseTypePackages 'com.acme.finance', 'com.acme.sales.*'
+creek.schema.json {
+    typeScanning {
+        packageWhiteList 'com.acme.finance', 'com.acme.sales.*'
+    }
 }
 ```
 
-##### Kotlin: Restricting packages to scan for base types
+##### Kotlin: Restricting packages to scan for @GeneratesSchema annotated types
 ```kotlin
-jsonSchema {
-    allowedBaseTypePackages("com.acme.finance", "com.acme.sales.*")
+creek.schema.json {
+    typeScanning {
+        packageWhiteList("com.acme.finance", "com.acme.sales.*")
+    }
 }
 ```
 
@@ -210,17 +247,23 @@ jsonSchema {
 Subtype scanning, i.e. scanning for subtypes of polymorphic types, can be restricted by restricting which package names
 to search under:
 
-##### Groovy: Restricting modules to scan
+##### Groovy: Restricting modules to scan for subtypes
 ```groovy
-jsonSchema {
-    allowedSubTypePackages 'com.acme.finance', 'com.acme.sales.*'
+creek.schema.json {
+    subTypeScanning {
+        moduleWhiteList("acme-finance", "acme-sales")
+        packageWhiteList 'com.acme.finance', 'com.acme.sales.*'
+    }
 }
 ```
 
-##### Kotlin: Restricting modules to scan
+##### Kotlin: Restricting modules to scan for subtypes
 ```kotlin
-jsonSchema {
-    allowedSubTypePackages("com.acme.finance", "com.acme.sales.*")
+creek.schema.json {
+    subTypeScanning {
+        moduleWhiteList("acme-finance", "acme-sales")
+        packageWhiteList("com.acme.finance", "com.acme.sales.*")
+    }
 }
 ```
 
@@ -235,13 +278,13 @@ be included in the jar under a `schema/json` directory.
 
 The location where schema files are written can be changed by changing either:
 
-* `jsonSchema.schemaResourceRoot`: the resource root for schema, defaulting to `$buildDir/generated/resources/schema`, or
-* `jsonSchema.outputDirectoryName`: the name of the subdirectory under `jsonSchema.schemaResourceRoot` where schemas will be written,
+* `creek.schema.json.schemaResourceRoot`: the resource root for schema, defaulting to `$buildDir/generated/resources/schema`, or
+* `creek.schema.json.outputDirectoryName`: the name of the subdirectory under `creek.schema.json.schemaResourceRoot` where schemas will be written,
    and defining the relative path to the schema files within the resulting jar file.
 
 ##### Groovy: Customising schema file output location
 ```groovy
-jsonSchema {
+creek.schema.json {
   schemaResourceRoot = file("$buildDir/custom/build/path")
   outputDirectoryName = "custom/path/within/jar"
 }
@@ -249,7 +292,7 @@ jsonSchema {
 
 ##### Kotlin: Customising schema file output location
 ```kotlin
-jsonSchema {
+creek.schema.json {
     schemaResourceRoot.set(file("$buildDir/custom/build/path"))
     outputDirectoryName.set("custom/path/within/jar")
 }
