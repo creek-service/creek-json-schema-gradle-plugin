@@ -122,7 +122,7 @@ public abstract class GenerateJsonSchema extends DefaultTask {
                     "Restricts the search for subtypes, when none are explicitly defined, "
                             + "to under the supplied allowed module name(s)")
     public void setSubtypeScanningModuleWhiteListFromOption(final List<String> args) {
-        getSubtypeScanningPackageWhiteList().set(args);
+        getSubtypeScanningModuleWhiteList().set(args);
     }
 
     /**

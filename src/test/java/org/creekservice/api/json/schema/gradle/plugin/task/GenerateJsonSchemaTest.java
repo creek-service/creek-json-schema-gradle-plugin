@@ -223,7 +223,7 @@ class GenerateJsonSchemaTest {
                         "--type-scanning-allowed-package=org.test.base.one",
                         "--type-scanning-allowed-package=org.test.base.two",
                         "--subtype-scanning-allowed-module=acme.test.sub",
-                        "--subtype-scanning-allowed-module=acme.module.sub",
+                        "--subtype-scanning-allowed-module=acme.model.sub",
                         "--subtype-scanning-allowed-package=org.test.sub.one",
                         "--subtype-scanning-allowed-package=org.test.sub.two");
 
@@ -243,7 +243,7 @@ class GenerateJsonSchemaTest {
         assertThat(
                 result.getOutput(),
                 containsString(
-                        "--subtype-scanning-allowed--packages=[org.test.sub.one, org.test.sub.two]"));
+                        "--subtype-scanning-allowed-packages=[org.test.sub.one, org.test.sub.two]"));
     }
 
     @CartesianTest
