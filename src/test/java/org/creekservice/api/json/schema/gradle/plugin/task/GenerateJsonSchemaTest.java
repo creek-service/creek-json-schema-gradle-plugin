@@ -124,6 +124,12 @@ class GenerateJsonSchemaTest {
         assertThat(
                 result.getOutput(),
                 containsString("JsonSchemaGenerator: " + defaultGeneratorVersion()));
+
+        assertThat(
+                result.getOutput(),
+                matchesPattern(
+                        Pattern.compile(
+                                ".*--class-path=.*build/classes/java/main:.*", Pattern.DOTALL)));
     }
 
     @CartesianTest
@@ -281,20 +287,15 @@ class GenerateJsonSchemaTest {
 
     @CartesianTest
     @MethodFactory("flavoursAndVersions")
-    void shouldIncludeProjectClassesInClassPath(final String flavour, final String gradleVersion) {
+    void shouldPlayNicelyWithOthers(final String flavour, final String gradleVersion) {
         // Given:
-        givenProject(flavour + "/default");
+        givenProject(flavour + "/other_creek_plugin");
 
         // When:
         final BuildResult result = executeTask(ExpectedOutcome.PASS, gradleVersion);
 
         // Then:
         assertThat(result.task(TASK_NAME).getOutcome(), is(SUCCESS));
-        assertThat(
-                result.getOutput(),
-                matchesPattern(
-                        Pattern.compile(
-                                ".*--class-path=.*build/classes/java/main:.*", Pattern.DOTALL)));
     }
 
     @CartesianTest
