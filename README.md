@@ -34,7 +34,7 @@ This will add the tasks below, with default configuration.
 
 The JSON Schema plugin adds the following tasks to your project:
 
-### generateJsonSchema - [`GenerateJsonSchema`][5]
+### generateJsonSchema - `GenerateJsonSchema`[5]
 
 > ### NOTE
 > Details of how to annotate classes to control their schema can be found in the [Creek JSON Schema Generator docs][1].
