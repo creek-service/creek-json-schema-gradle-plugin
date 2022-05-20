@@ -19,11 +19,23 @@ plugins {
     `java-library`
 }
 
-jsonSchema {
-    schemaResourceRoot.set(file("$buildDir/custom/path"))
-    outputDirectoryName.set("bob")
-    allowedModules.set(listOf("acme.test", "acme.models"))
-    allowedBaseTypePackages.set(listOf("org.test.base.package"))
-    allowedSubTypePackages.set(listOf("org.test.sub.package"))
-    extraArguments.set(listOf("--echo-only"))
+creek {
+    schema {
+        json {
+            schemaResourceRoot.set(file("$buildDir/custom/path"))
+            outputDirectoryName.set("bob")
+            extraArguments("--echo-only")
+
+            typeScanning {
+                moduleWhiteList("acme.test", "acme.models")
+            }
+
+            subTypeScanning {
+                packageWhiteList("com.acme.test.sub", "com.acme.models.sub")
+            }
+        }
+    }
 }
+
+creek.schema.json.typeScanning.packageWhiteList("com.acme.test", "com.acme.models")
+creek.schema.json.subTypeScanning.moduleWhiteList("acme.test.sub", "acme.models.sub")

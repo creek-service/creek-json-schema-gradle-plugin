@@ -52,7 +52,7 @@ import org.junitpioneer.jupiter.cartesian.CartesianTest;
 import org.junitpioneer.jupiter.cartesian.CartesianTest.MethodFactory;
 
 @SuppressWarnings("ConstantConditions")
-class GenerateJsonSchemaTaskTest {
+class GenerateJsonSchemaTest {
 
     // Change this to true locally to debug using attach-me plugin:
     private static final boolean DEBUG = false;
@@ -116,13 +116,20 @@ class GenerateJsonSchemaTaskTest {
                         "--output-directory="
                                 + projectDir.resolve(
                                         "build/generated/resources/schema/schema/json")));
-        assertThat(result.getOutput(), containsString("--allowed-modules=<ANY>"));
-        assertThat(result.getOutput(), containsString("--allowed-base-type-packages=<ANY>"));
-        assertThat(result.getOutput(), containsString("--allowed-sub-type-packages=<ANY>"));
+        assertThat(result.getOutput(), containsString("--type-scanning-allowed-modules=<ANY>"));
+        assertThat(result.getOutput(), containsString("--type-scanning-allowed-packages=<ANY>"));
+        assertThat(result.getOutput(), containsString("--subtype-scanning-allowed-modules=<ANY>"));
+        assertThat(result.getOutput(), containsString("--subtype-scanning-allowed-packages=<ANY>"));
 
         assertThat(
                 result.getOutput(),
                 containsString("JsonSchemaGenerator: " + defaultGeneratorVersion()));
+
+        assertThat(
+                result.getOutput(),
+                matchesPattern(
+                        Pattern.compile(
+                                ".*--class-path=.*build/classes/java/main:.*", Pattern.DOTALL)));
     }
 
     @CartesianTest
@@ -153,15 +160,23 @@ class GenerateJsonSchemaTaskTest {
         assertThat(result.task(TASK_NAME).getOutcome(), is(SUCCESS));
         assertThat(
                 result.getOutput(),
-                containsString("--output-directory=" + projectDir.resolve("build/custom/path")));
-        assertThat(
-                result.getOutput(), containsString("--allowed-modules=[acme.test, acme.models]"));
-        assertThat(
-                result.getOutput(),
-                containsString("--allowed-base-type-packages=[org.test.base.package]"));
+                containsString(
+                        "--output-directory=" + projectDir.resolve("build/custom/path/bob")));
         assertThat(
                 result.getOutput(),
-                containsString("--allowed-sub-type-packages=[org.test.sub.package]"));
+                containsString("--type-scanning-allowed-modules=[acme.test, acme.models]"));
+        assertThat(
+                result.getOutput(),
+                containsString(
+                        "--type-scanning-allowed-packages=[com.acme.test, com.acme.models]"));
+        assertThat(
+                result.getOutput(),
+                containsString(
+                        "--subtype-scanning-allowed-modules=[acme.test.sub, acme.models.sub]"));
+        assertThat(
+                result.getOutput(),
+                containsString(
+                        "--subtype-scanning-allowed-packages=[com.acme.test.sub, com.acme.models.sub]"));
     }
 
     @CartesianTest
@@ -209,23 +224,32 @@ class GenerateJsonSchemaTaskTest {
                         ExpectedOutcome.PASS,
                         gradleVersion,
                         "--extra-argument=--echo-only",
-                        "--allowed-module=acme.test",
-                        "--allowed-module=acme.model",
-                        "--allowed-base-type-package=org.test.base.one",
-                        "--allowed-base-type-package=org.test.base.two",
-                        "--allowed-sub-type-package=org.test.sub.one",
-                        "--allowed-sub-type-package=org.test.sub.two");
+                        "--type-scanning-allowed-module=acme.test",
+                        "--type-scanning-allowed-module=acme.model",
+                        "--type-scanning-allowed-package=org.test.base.one",
+                        "--type-scanning-allowed-package=org.test.base.two",
+                        "--subtype-scanning-allowed-module=acme.test.sub",
+                        "--subtype-scanning-allowed-module=acme.model.sub",
+                        "--subtype-scanning-allowed-package=org.test.sub.one",
+                        "--subtype-scanning-allowed-package=org.test.sub.two");
 
         // Then:
         assertThat(result.task(TASK_NAME).getOutcome(), is(SUCCESS));
-        assertThat(result.getOutput(), containsString("--allowed-modules=[acme.test, acme.model]"));
+        assertThat(
+                result.getOutput(),
+                containsString("--type-scanning-allowed-modules=[acme.test, acme.model]"));
         assertThat(
                 result.getOutput(),
                 containsString(
-                        "--allowed-base-type-packages=[org.test.base.one, org.test.base.two]"));
+                        "--type-scanning-allowed-packages=[org.test.base.one, org.test.base.two]"));
         assertThat(
                 result.getOutput(),
-                containsString("--allowed-sub-type-packages=[org.test.sub.one, org.test.sub.two]"));
+                containsString(
+                        "--subtype-scanning-allowed-modules=[acme.test.sub, acme.model.sub]"));
+        assertThat(
+                result.getOutput(),
+                containsString(
+                        "--subtype-scanning-allowed-packages=[org.test.sub.one, org.test.sub.two]"));
     }
 
     @CartesianTest
@@ -263,20 +287,15 @@ class GenerateJsonSchemaTaskTest {
 
     @CartesianTest
     @MethodFactory("flavoursAndVersions")
-    void shouldIncludeProjectClassesInClassPath(final String flavour, final String gradleVersion) {
+    void shouldPlayNicelyWithOthers(final String flavour, final String gradleVersion) {
         // Given:
-        givenProject(flavour + "/default");
+        givenProject(flavour + "/other_creek_plugin");
 
         // When:
         final BuildResult result = executeTask(ExpectedOutcome.PASS, gradleVersion);
 
         // Then:
         assertThat(result.task(TASK_NAME).getOutcome(), is(SUCCESS));
-        assertThat(
-                result.getOutput(),
-                matchesPattern(
-                        Pattern.compile(
-                                ".*--class-path=.*build/classes/java/main:.*", Pattern.DOTALL)));
     }
 
     @CartesianTest

@@ -15,10 +15,11 @@
  */
 
 plugins {
-    id("org.creekservice.json.schema")
-    `java-library`
+    id 'org.creekservice.system.test' version('0.2.0-SNAPSHOT')
+    id 'org.creekservice.json.schema'
+    id 'java-library'
 }
 
 creek.schema.json {
-    extraArguments("--unsupported-arg")
+    extraArguments "--echo-only"
 }
