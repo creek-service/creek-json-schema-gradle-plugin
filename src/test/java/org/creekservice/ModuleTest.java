@@ -18,6 +18,7 @@ package org.creekservice;
 
 
 import org.creekservice.api.test.conformity.ConformityTester;
+import org.creekservice.api.test.conformity.check.CheckConstructorsPrivate;
 import org.creekservice.api.test.conformity.check.CheckModule;
 import org.junit.jupiter.api.Test;
 
@@ -27,6 +28,8 @@ class ModuleTest {
     void shouldConform() {
         ConformityTester.builder(ModuleTest.class)
                 .withDisabled("Gradle doesn't support modular plugins yet", CheckModule.builder())
+                .withDisabled(
+                        "Gradle requires public constructors", CheckConstructorsPrivate.builder())
                 .check();
     }
 }
