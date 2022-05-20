@@ -36,39 +36,46 @@ public class CreekParallelExecutionConfigurationStrategy
     public ParallelExecutionConfiguration createConfiguration(
             final ConfigurationParameters configurationParameters) {
         final BigDecimal factor =
-                getFactor(
-                        CONFIG_DYNAMIC_FACTOR_PROPERTY_NAME,
-                        configurationParameters,
-                        f -> f.compareTo(BigDecimal.ZERO) > 0);
+                getFactor(CONFIG_DYNAMIC_FACTOR_PROPERTY_NAME, configurationParameters);
 
         final BigDecimal maxFactor =
-                getFactor(
-                        CONFIG_DYNAMIC_MAX_FACTOR_PROPERTY_NAME,
-                        configurationParameters,
-                        f -> f.compareTo(BigDecimal.ONE) >= 0);
+                getFactor(CONFIG_DYNAMIC_MAX_FACTOR_PROPERTY_NAME, configurationParameters);
+
+        Preconditions.condition(
+                maxFactor.compareTo(factor) > 0,
+                () ->
+                        "Max Factor '"
+                                + maxFactor
+                                + "' specified via configuration parameter '"
+                                + CONFIG_DYNAMIC_MAX_FACTOR_PROPERTY_NAME
+                                + "' must be greater than or equal to factor '"
+                                + factor
+                                + "' specified via configuration parameter '"
+                                + CONFIG_DYNAMIC_MAX_FACTOR_PROPERTY_NAME
+                                + "'");
 
         final BigDecimal processors =
                 BigDecimal.valueOf(Runtime.getRuntime().availableProcessors());
         final int parallelism = Math.max(1, factor.multiply(processors).intValue());
-        final int maxThreadCount = maxFactor.multiply(processors).intValue();
+        final int maxThreadCount = Math.max(1, maxFactor.multiply(processors).intValue());
 
         return new CreekParallelExecutionConfiguration(
                 parallelism, maxThreadCount, KEEP_ALIVE_SECONDS);
     }
 
     private BigDecimal getFactor(
-            final String configName,
-            final ConfigurationParameters configurationParameters,
-            final Predicate<BigDecimal> check) {
+            final String configName, final ConfigurationParameters configurationParameters) {
         final BigDecimal factor =
                 configurationParameters.get(configName, BigDecimal::new).orElse(BigDecimal.ONE);
 
         Preconditions.condition(
-                check.test(factor),
+                factor.compareTo(BigDecimal.ZERO) > 0,
                 () ->
-                        String.format(
-                                "Factor '%s' specified via configuration parameter '%s' must be greater than 0",
-                                factor, configName));
+                        "Factor '"
+                                + factor
+                                + "' specified via configuration parameter '"
+                                + configName
+                                + "' must be greater than 0");
         return factor;
     }
 
@@ -115,11 +122,11 @@ public class CreekParallelExecutionConfigurationStrategy
         public Predicate<? super ForkJoinPool> getSaturatePredicate() {
             // Todo:
             return pool -> {
-                System.out.println("pool parallelism:" + pool.getParallelism());
-                System.out.println("pool activeThreadCount:" + pool.getActiveThreadCount());
-                System.out.println("pool poolSize:" + pool.getPoolSize());
-                System.out.println("pool runningThreadCount:" + pool.getRunningThreadCount());
-                System.out.println("pool quoteTaskCount:" + pool.getQueuedTaskCount());
+                System.err.println("pool parallelism:" + pool.getParallelism());
+                System.err.println("pool activeThreadCount:" + pool.getActiveThreadCount());
+                System.err.println("pool poolSize:" + pool.getPoolSize());
+                System.err.println("pool runningThreadCount:" + pool.getRunningThreadCount());
+                System.err.println("pool quoteTaskCount:" + pool.getQueuedTaskCount());
                 return true;
             };
         }
