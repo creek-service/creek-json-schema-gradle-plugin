@@ -109,6 +109,12 @@ gradlePlugin {
     }
 }
 
+tasks.jar {
+    manifest {
+        attributes("Automatic-Module-Name" to "creek.json.schema.gradle.plugin")
+    }
+}
+
 tasks.register("writeVersionFile") {
     val outputDir = file("$buildDir/generated/resources/version")
     val versionFile = file("$outputDir/creek-json-schema-generator.version")
