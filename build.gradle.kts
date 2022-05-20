@@ -47,7 +47,7 @@ extra.apply {
 
     set("log4jVersion", "2.17.2")           // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
     set("guavaVersion", "31.1-jre")         // https://mvnrepository.com/artifact/com.google.guava/guava
-    set("junitVersion", "5.8.2")            // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
+    set("junitVersion", "5.9.0-M1")            // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
     set("junitPioneerVersion", "1.7.0")     // https://mvnrepository.com/artifact/org.junit-pioneer/junit-pioneer
     set("mockitoVersion", "4.5.1")          // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
     set("hamcrestVersion", "2.2")           // https://mvnrepository.com/artifact/org.hamcrest/hamcrest-core
@@ -77,7 +77,7 @@ dependencies {
     testImplementation("org.apache.logging.log4j:log4j-api:$log4jVersion")
     testImplementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
     testRuntimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:$log4jVersion")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
     // The following dependency is only added to trigger the Github Dependency Bot to update creekSystemTestVersion:
     testRuntimeOnly("org.creekservice:creek-json-schema-generator:$creekJsonVersion")
 }
