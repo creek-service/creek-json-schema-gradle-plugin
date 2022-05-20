@@ -30,52 +30,59 @@ public class CreekParallelExecutionConfigurationStrategy
         implements ParallelExecutionConfigurationStrategy {
     private static final int KEEP_ALIVE_SECONDS = 30;
 
+    public static final String CONFIG_DYNAMIC_MAX_FACTOR_PROPERTY_NAME = "dynamic.max.factor";
+
     @Override
     public ParallelExecutionConfiguration createConfiguration(
             final ConfigurationParameters configurationParameters) {
         final BigDecimal factor =
-                configurationParameters
-                        .get(CONFIG_DYNAMIC_FACTOR_PROPERTY_NAME, BigDecimal::new)
-                        .orElse(BigDecimal.ONE);
+                getFactor(
+                        CONFIG_DYNAMIC_FACTOR_PROPERTY_NAME,
+                        configurationParameters,
+                        f -> f.compareTo(BigDecimal.ZERO) > 0);
+
+        final BigDecimal maxFactor =
+                getFactor(
+                        CONFIG_DYNAMIC_MAX_FACTOR_PROPERTY_NAME,
+                        configurationParameters,
+                        f -> f.compareTo(BigDecimal.ONE) >= 0);
+
+        final BigDecimal processors =
+                BigDecimal.valueOf(Runtime.getRuntime().availableProcessors());
+        final int parallelism = Math.max(1, factor.multiply(processors).intValue());
+        final int maxThreadCount = maxFactor.multiply(processors).intValue();
+
+        return new CreekParallelExecutionConfiguration(
+                parallelism, maxThreadCount, KEEP_ALIVE_SECONDS);
+    }
+
+    private BigDecimal getFactor(
+            final String configName,
+            final ConfigurationParameters configurationParameters,
+            final Predicate<BigDecimal> check) {
+        final BigDecimal factor =
+                configurationParameters.get(configName, BigDecimal::new).orElse(BigDecimal.ONE);
 
         Preconditions.condition(
-                factor.compareTo(BigDecimal.ZERO) > 0,
+                check.test(factor),
                 () ->
                         String.format(
                                 "Factor '%s' specified via configuration parameter '%s' must be greater than 0",
-                                factor, CONFIG_DYNAMIC_FACTOR_PROPERTY_NAME));
-
-        final int parallelism =
-                Math.max(
-                        1,
-                        factor.multiply(
-                                        BigDecimal.valueOf(
-                                                Runtime.getRuntime().availableProcessors()))
-                                .intValue());
-
-        return new DefaultParallelExecutionConfiguration(
-                parallelism, parallelism, parallelism, parallelism, KEEP_ALIVE_SECONDS);
+                                factor, configName));
+        return factor;
     }
 
-    private static class DefaultParallelExecutionConfiguration
+    private static class CreekParallelExecutionConfiguration
             implements ParallelExecutionConfiguration {
 
         private final int parallelism;
-        private final int minimumRunnable;
-        private final int maxPoolSize;
-        private final int corePoolSize;
+        private final int maxThreadCount;
         private final int keepAliveSeconds;
 
-        DefaultParallelExecutionConfiguration(
-                final int parallelism,
-                final int minimumRunnable,
-                final int maxPoolSize,
-                final int corePoolSize,
-                final int keepAliveSeconds) {
+        CreekParallelExecutionConfiguration(
+                final int parallelism, final int maxThreadCount, final int keepAliveSeconds) {
             this.parallelism = parallelism;
-            this.minimumRunnable = minimumRunnable;
-            this.maxPoolSize = maxPoolSize;
-            this.corePoolSize = corePoolSize;
+            this.maxThreadCount = maxThreadCount;
             this.keepAliveSeconds = keepAliveSeconds;
         }
 
@@ -86,17 +93,17 @@ public class CreekParallelExecutionConfigurationStrategy
 
         @Override
         public int getMinimumRunnable() {
-            return minimumRunnable;
+            return parallelism;
         }
 
         @Override
         public int getMaxPoolSize() {
-            return maxPoolSize;
+            return maxThreadCount;
         }
 
         @Override
         public int getCorePoolSize() {
-            return corePoolSize;
+            return parallelism;
         }
 
         @Override
@@ -111,7 +118,8 @@ public class CreekParallelExecutionConfigurationStrategy
                 System.out.println("pool parallelism:" + pool.getParallelism());
                 System.out.println("pool activeThreadCount:" + pool.getActiveThreadCount());
                 System.out.println("pool poolSize:" + pool.getPoolSize());
-                System.out.println("pool poolSize:" + pool.getPoolSize());
+                System.out.println("pool runningThreadCount:" + pool.getRunningThreadCount());
+                System.out.println("pool quoteTaskCount:" + pool.getQueuedTaskCount());
                 return true;
             };
         }
