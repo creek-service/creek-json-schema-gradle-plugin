@@ -30,15 +30,20 @@ jobs:
           cache: gradle
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+      - name: Cache Gradle Distos
+        uses: actions/cache@v3
+        with:
+          key: ${{ github.repository }}-${{ runner.os }}
+          path: ~/.gradle/wrapper/dists
       - name: Build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
-        run: ./gradlew check coveralls
+        run: ./gradlew --no-daemon check coveralls
       - name: Publish
         if: github.event_name == 'push' || github.event.inputs.publish == 'true'
         run:  |
           git fetch --tags --unshallow
-          ./gradlew publish
+          ./gradlew --no-daemon publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
