@@ -426,7 +426,7 @@ class GenerateJsonSchemaTest {
     @SuppressWarnings("unused") // Invoked by reflection
     private static ArgumentSets flavoursAndVersions() {
         final Collection<?> flavours = List.of("kotlin", "groovy");
-        final Collection<?> gradleVersions = List.of("6.4", "6.9.2", "7.0", "7.3", "7.4.2");
+        final Collection<?> gradleVersions = List.of("6.4", "6.9.2", "7.0", "7.4.2");
         return ArgumentSets.argumentsForFirstParameter(flavours)
                 .argumentsForNextParameter(gradleVersions);
     }
