@@ -17,14 +17,14 @@ To use the JSON Schema plugin, include the following in your build script:
 ##### Groovy: Using the JSON Schema plugin
 ```groovy
 plugins {
-    id 'org.creekservice.json.schema'
+    id 'org.creekservice.json.schema' version '0.2.0'
 }
 ```
 
 ##### Kotlin: Using the JSON Schema plugin
 ```kotlin
 plugins {
-    id("org.creekservice.json.schema")
+    id("org.creekservice.json.schema") version "0.2.0"
 }
 ```
 
