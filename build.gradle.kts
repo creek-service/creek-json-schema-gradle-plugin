@@ -3,7 +3,7 @@ plugins {
     jacoco
     `maven-publish`
     `java-gradle-plugin`
-    id("com.github.spotbugs") version "5.0.12"                   // https://plugins.gradle.org/plugin/com.github.spotbugs
+    id("com.github.spotbugs") version "5.0.13"                   // https://plugins.gradle.org/plugin/com.github.spotbugs
     id("com.diffplug.spotless") version "6.11.0"                 // https://plugins.gradle.org/plugin/com.diffplug.spotless
     id("pl.allegro.tech.build.axion-release") version "1.14.2"  // https://plugins.gradle.org/plugin/pl.allegro.tech.build.axion-release
     id("com.github.kt3k.coveralls") version "2.12.0"            // https://plugins.gradle.org/plugin/com.github.kt3k.coveralls
