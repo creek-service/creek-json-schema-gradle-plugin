@@ -44,6 +44,7 @@ public abstract class GenerateJsonSchema extends DefaultTask {
 
     final ConfigurableFileCollection classPath = getProject().getObjects().fileCollection();
 
+    /** Constructor */
     public GenerateJsonSchema() {
 
         classPath.from((Callable<Object>) this::getClassFiles);
@@ -62,11 +63,17 @@ public abstract class GenerateJsonSchema extends DefaultTask {
      * <p>Setting this will speed up schema generation.
      *
      * <p>Default: empty, meaning all modules.
+     *
+     * @return type scanning module white list property.
      */
     @Input
     public abstract ListProperty<String> getTypeScanningModuleWhiteList();
 
-    /** Method to allow setting allowed subtype packages from the command line. */
+    /**
+     * Method to allow setting allowed subtype packages from the command line.
+     *
+     * @param args the modules to whitelist
+     */
     @SuppressWarnings("unused") // Invoked by Gradle
     @Option(
             option = "type-scanning-allowed-module",
@@ -86,11 +93,17 @@ public abstract class GenerateJsonSchema extends DefaultTask {
      * <p>Setting this will speed up schema generation.
      *
      * <p>Default: empty, meaning all packages.
+     *
+     * @return type scanning packaging white list property.
      */
     @Input
     public abstract ListProperty<String> getTypeScanningPackageWhiteList();
 
-    /** Method to allow setting allowed subtype packages from the command line. */
+    /**
+     * Method to allow setting allowed subtype packages from the command line.
+     *
+     * @param args the packages to whitelist
+     */
     @SuppressWarnings("unused") // Invoked by Gradle
     @Option(
             option = "type-scanning-allowed-package",
@@ -110,11 +123,17 @@ public abstract class GenerateJsonSchema extends DefaultTask {
      * <p>Setting this will speed up schema generation.
      *
      * <p>Default: empty, meaning all modules.
+     *
+     * @return subtype scanning module white list property.
      */
     @Input
     public abstract ListProperty<String> getSubtypeScanningModuleWhiteList();
 
-    /** Method to allow setting allowed subtype modules from the command line. */
+    /**
+     * Method to allow setting allowed subtype modules from the command line.
+     *
+     * @param args the modules to whitelist
+     */
     @SuppressWarnings("unused") // Invoked by Gradle
     @Option(
             option = "subtype-scanning-allowed-module",
@@ -134,11 +153,17 @@ public abstract class GenerateJsonSchema extends DefaultTask {
      * <p>Setting this will speed up schema generation.
      *
      * <p>Default: empty, meaning all packages.
+     *
+     * @return subtype scanning package white list property.
      */
     @Input
     public abstract ListProperty<String> getSubtypeScanningPackageWhiteList();
 
-    /** Method to allow setting allowed subtype packages from the command line. */
+    /**
+     * Method to allow setting allowed subtype packages from the command line.
+     *
+     * @param args the packages to whitelist
+     */
     @SuppressWarnings("unused") // Invoked by Gradle
     @Option(
             option = "subtype-scanning-allowed-package",
@@ -153,6 +178,8 @@ public abstract class GenerateJsonSchema extends DefaultTask {
      * The resource root where generated schemas should be stored
      *
      * <p>Default: $buildDir/generated/resources/schema
+     *
+     * @return the resource root property
      */
     @OutputDirectory
     public abstract DirectoryProperty getSchemaResourceRoot();
@@ -163,6 +190,8 @@ public abstract class GenerateJsonSchema extends DefaultTask {
      *
      * <p>This corresponds to the directory under which schema files will be located within the
      * compiled jar file.
+     *
+     * @return output directory property.
      */
     @Input
     public abstract Property<String> getOutputDirectoryName();
@@ -171,7 +200,11 @@ public abstract class GenerateJsonSchema extends DefaultTask {
     @Input
     public abstract ListProperty<String> getExtraArguments();
 
-    /** Method to allow setting extra arguments from the command line. */
+    /**
+     * Method to allow setting extra arguments from the command line.
+     *
+     * @param args the extra arguments to set.
+     */
     @SuppressWarnings("unused") // Invoked by Gradle
     @Option(
             option = "extra-argument",
@@ -195,6 +228,7 @@ public abstract class GenerateJsonSchema extends DefaultTask {
     @Internal
     public abstract ConfigurableFileCollection getProjectDeps();
 
+    /** The task action. */
     @TaskAction
     public void run() {
         checkDependenciesIncludesRunner();

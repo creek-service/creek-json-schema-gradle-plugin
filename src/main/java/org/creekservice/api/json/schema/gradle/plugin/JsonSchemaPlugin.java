@@ -39,18 +39,38 @@ import org.gradle.api.tasks.SourceSetContainer;
 /** Plugin for generating JSON schemas from code */
 public final class JsonSchemaPlugin implements Plugin<Project> {
 
+    /** Creek extension name */
     public static final String CREEK_EXTENSION_NAME = "creek";
+
+    /** Schema extension name, i.e. `creek.schema` */
     public static final String SCHEMA_EXTENSION_NAME = "schema";
+
+    /** Json schema extension name, i.e. `creek.schema.json`. */
     public static final String JSON_EXTENSION_NAME = "json";
+
+    /** Name of dependency configuration for storing the schema generator. */
     public static final String GENERATOR_CONFIGURATION_NAME = "jsonSchemaGenerator";
+
+    /** Generate schema task name. */
     public static final String GENERATE_SCHEMA_TASK_NAME = "generateJsonSchema";
-    public static final String GROUP_NAME = "Creek";
-    public static final List<String> ALL_MODULES = List.of();
-    public static final List<String> ALL_PACKAGES = List.of();
+
+    /** Standard Creek group name. */
+    public static final String GROUP_NAME = "creek";
+
+    /** Default resource root */
     public static final String DEFAULT_RESOURCE_ROOT = "generated/resources/schema";
+
+    /** Default output folder under the resource root. */
     public static final String DEFAULT_OUTPUT_FOLDER = "schema/json";
+
+    /** Artifact group for generator */
     public static final String GENERATOR_DEP_GROUP_NAME = "org.creekservice";
+
+    /** Artifact name for generator */
     public static final String GENERATOR_DEP_ARTEFACT_NAME = "creek-json-schema-generator";
+
+    private static final List<String> ALL_MODULES = List.of();
+    private static final List<String> ALL_PACKAGES = List.of();
 
     @Override
     public void apply(final Project project) {
@@ -82,7 +102,8 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
         return extension;
     }
 
-    void registerGenerateSchemaTask(final Project project, final JsonSchemaExtension extension) {
+    private void registerGenerateSchemaTask(
+            final Project project, final JsonSchemaExtension extension) {
         final GenerateJsonSchema task =
                 project.getTasks().create(GENERATE_SCHEMA_TASK_NAME, GenerateJsonSchema.class);
 
@@ -99,7 +120,7 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
         task.getExtraArguments().set(extension.getExtraArguments());
     }
 
-    void registerJsonSchemaConfiguration(final Project project) {
+    private void registerJsonSchemaConfiguration(final Project project) {
         final Configuration cfg = project.getConfigurations().create(GENERATOR_CONFIGURATION_NAME);
         cfg.setVisible(false);
         cfg.setTransitive(true);
@@ -178,12 +199,14 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
         return extensions.create(name, type);
     }
 
+    /** Simple extendable `creek` extension */
     public abstract static class CreekSpec implements ExtensionAware {
 
         @Override
         public abstract ExtensionContainer getExtensions();
     }
 
+    /** Simple extendable `schema` extension */
     public abstract static class SchemaSpec implements ExtensionAware {
 
         @Override
