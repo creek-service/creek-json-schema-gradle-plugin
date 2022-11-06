@@ -23,11 +23,16 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 
+/** Gradle extension for configuring schema generation */
 public abstract class JsonSchemaExtension implements ExtensionAware {
 
     private final TypeScanningSpec typeScanning;
     private final TypeScanningSpec subTypeScanning;
 
+    /**
+     * Gradle extension for configuring which packages and modules are included when scanning for
+     * subtypes.
+     */
     public abstract static class TypeScanningSpec {
 
         /**
@@ -37,6 +42,8 @@ public abstract class JsonSchemaExtension implements ExtensionAware {
          * <p>Allowed module names can include the glob wildcard {@code *} character.
          *
          * <p>Default: empty, meaning all modules will be scanned.
+         *
+         * @return the module whitelist property
          */
         public abstract ListProperty<String> getModuleWhiteList();
 
@@ -59,6 +66,8 @@ public abstract class JsonSchemaExtension implements ExtensionAware {
          * <p>Allowed package names can include the glob wildcard {@code *} character.
          *
          * <p>Default: empty, meaning all packages will be scanned.
+         *
+         * @return the property whitelist property
          */
         public abstract ListProperty<String> getPackageWhiteListed();
 
@@ -75,6 +84,7 @@ public abstract class JsonSchemaExtension implements ExtensionAware {
         }
     }
 
+    /** Constructor */
     public JsonSchemaExtension() {
         this.typeScanning = getExtensions().create("typeScanning", TypeScanningSpec.class);
         this.subTypeScanning = getExtensions().create("subTypeScanning", TypeScanningSpec.class);
@@ -104,6 +114,8 @@ public abstract class JsonSchemaExtension implements ExtensionAware {
      * Optional resource root where generated schemas should be stored
      *
      * <p>Default: {@code $buildDir/generated/resources/schema}
+     *
+     * @return the resource root property.
      */
     public abstract DirectoryProperty getSchemaResourceRoot();
 
@@ -115,6 +127,8 @@ public abstract class JsonSchemaExtension implements ExtensionAware {
      * compiled jar file.
      *
      * <p>Default: {@code schema/json}
+     *
+     * @return output directory name property.
      */
     public abstract Property<String> getOutputDirectoryName();
 
@@ -124,6 +138,8 @@ public abstract class JsonSchemaExtension implements ExtensionAware {
      * <p>See https://github.com/creek-service/creek-json-schema/tree/main/generator for more info.
      *
      * <p>Default: none.
+     *
+     * @return extra args property.
      */
     public abstract ListProperty<String> getExtraArguments();
 

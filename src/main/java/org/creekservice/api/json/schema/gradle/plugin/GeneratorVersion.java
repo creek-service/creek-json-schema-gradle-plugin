@@ -27,10 +27,11 @@ import java.io.InputStream;
  */
 public final class GeneratorVersion {
 
-    public static final String VERSION_RESOURCE_NAME = "/creek-json-schema-generator.version";
+    private static final String VERSION_RESOURCE_NAME = "/creek-json-schema-generator.version";
 
     private GeneratorVersion() {}
 
+    /** @return the generator version. */
     public static String defaultGeneratorVersion() {
         return loadResource(VERSION_RESOURCE_NAME);
     }
