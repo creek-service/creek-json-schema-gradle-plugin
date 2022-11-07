@@ -52,7 +52,11 @@ tasks.javadoc {
 }
 
 // Dummy/empty publishPlugins task, to allow consistent build.yml workflow
-tasks.register("publishPlugins")
+tasks.register("publishPlugins") {
+    doLast {
+        println("No Gradle plugins to publish")
+    }
+}
 
 publishing {
     repositories {
