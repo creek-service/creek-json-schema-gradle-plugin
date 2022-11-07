@@ -1,30 +1,33 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Coverage Status](https://coveralls.io/repos/github/creek-service/creek-json-schema-gradle-plugin/badge.svg?branch=main)](https://coveralls.io/github/creek-service/creek-json-schema-gradle-plugin?branch=main)
-[![build](https://github.com/creek-service/creek-json-schema-gradle-plugin/actions/workflows/gradle.yml/badge.svg)](https://github.com/creek-service/creek-json-schema-gradle-plugin/actions/workflows/gradle.yml)
+[![build](https://github.com/creek-service/creek-json-schema-gradle-plugin/actions/workflows/build.yml/badge.svg)](https://github.com/creek-service/creek-json-schema-gradle-plugin/actions/workflows/build.yml)
 [![CodeQL](https://github.com/creek-service/creek-json-schema-gradle-plugin/actions/workflows/codeql.yml/badge.svg)](https://github.com/creek-service/creek-json-schema-gradle-plugin/actions/workflows/codeql.yml)
 
 # Creek JSON Schema Gradle Plugin
 
 A Gradle plugin for generating JSON schemas from code using the [Creel JSON Schema Generator][1].
 
+See [CreekService.org](https://www.creekservice.org) for info on Creek Service.
+
 > ### NOTE
 > The plugin works with Gradle 6.4 and above.
 
 ## Usage
 
+The plugin is available on the [Gradle Plugin Portal][pluginPortal].
 To use the JSON Schema plugin, include the following in your build script:
 
 ##### Groovy: Using the JSON Schema plugin
 ```groovy
 plugins {
-    id 'org.creekservice.json.schema' version '0.2.0'
+    id 'org.creekservice.schema.json' version '0.2.0'
 }
 ```
 
 ##### Kotlin: Using the JSON Schema plugin
 ```kotlin
 plugins {
-    id("org.creekservice.json.schema") version "0.2.0"
+    id("org.creekservice.schema.json") version "0.2.0"
 }
 ```
 
@@ -315,3 +318,4 @@ to work with your chosen language. (Consider adding details to [Issue 6][8] if y
 [6]: https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:what-are-dependency-configurations
 [7]: https://github.com/creek-service/creek-json-schema/tree/main/generator
 [8]: https://github.com/creek-service/creek-json-schema-gradle-plugin/issues/6
+[pluginPortal]: https://plugins.gradle.org/plugin/org.creekservice.schema.json

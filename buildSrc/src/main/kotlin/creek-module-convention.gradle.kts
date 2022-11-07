@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
+/**
+ * Standard configuration of Java Module Platform System, a.k.a. Java 9 modules.
+ *
+ * <p>Apply to all modules that publish JPMS modules.
+ */
+
 plugins {
-    id("org.creekservice.schema.json")
-    `java-library`
+    java
+    id("org.javamodularity.moduleplugin")
 }
 
-creek.schema.json {
-    extraArguments("--unsupported-arg")
+java {
+    modularity.inferModulePath.set(false)
 }

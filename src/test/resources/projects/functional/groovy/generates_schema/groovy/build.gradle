@@ -15,7 +15,7 @@
  */
 
 plugins {
-    id 'org.creekservice.json.schema'
+    id 'org.creekservice.schema.json'
     id 'groovy'
     id 'java-library'
 }

@@ -16,7 +16,7 @@
 
 plugins {
     id("org.creekservice.system.test") version "0.2.0-SNAPSHOT"
-    id("org.creekservice.json.schema")
+    id("org.creekservice.schema.json")
     `java-library`
 }
 

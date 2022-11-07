@@ -15,7 +15,7 @@
  */
 
 plugins {
-    id 'org.creekservice.json.schema'
+    id 'org.creekservice.schema.json'
 
     // Note: no plugin added here that adds source sets, e.g. application, java, java-library, groovy, kotlin etc.
 }
