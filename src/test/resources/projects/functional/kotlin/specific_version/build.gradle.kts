@@ -16,7 +16,7 @@
 
 plugins {
 
-    id("org.creekservice.json.schema")
+    id("org.creekservice.schema.json")
     `java-library`
 }
 
