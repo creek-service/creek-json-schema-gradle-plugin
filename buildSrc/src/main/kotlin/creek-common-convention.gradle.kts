@@ -77,6 +77,7 @@ spotless {
         removeUnusedImports()
         trimTrailingWhitespace()
         endWithNewline()
+        toggleOffOn("formatting:off", "formatting:on")
     }
 }
 
@@ -92,6 +93,12 @@ spotbugs {
             required.set(true)
             setStylesheet("fancy-hist.xsl")
         }
+    }
+}
+
+if (rootProject.name != project.name) {
+    tasks.jar {
+        archiveBaseName.set("${rootProject.name}-${project.name}")
     }
 }
 
