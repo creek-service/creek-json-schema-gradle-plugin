@@ -196,7 +196,9 @@ public abstract class GenerateJsonSchema extends DefaultTask {
     @Input
     public abstract Property<String> getOutputDirectoryName();
 
-    /** @return additional command line arguments to pass to the generator */
+    /**
+     * @return additional command line arguments to pass to the generator
+     */
     @Input
     public abstract ListProperty<String> getExtraArguments();
 
@@ -220,11 +222,15 @@ public abstract class GenerateJsonSchema extends DefaultTask {
     @InputFiles
     public abstract ConfigurableFileCollection getClassFiles();
 
-    /** @return dependencies of the system test runner. */
+    /**
+     * @return dependencies of the system test runner.
+     */
     @Internal
     public abstract ConfigurableFileCollection getGeneratorDeps();
 
-    /** @return dependencies the project needs to compile. */
+    /**
+     * @return dependencies the project needs to compile.
+     */
     @Internal
     public abstract ConfigurableFileCollection getProjectDeps();
 
