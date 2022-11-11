@@ -17,6 +17,8 @@
 /**
  * Configuration for Creek Gradle plugin publishing.
  *
+ * <p>Version: 1.1
+ *
  * <p>Apply this plugin to any module publishing a Gradle plugin.
  *
  * <p>Do NOT ally the `creek-publishing-convention`.

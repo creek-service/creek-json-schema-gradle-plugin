@@ -31,7 +31,9 @@ public final class GeneratorVersion {
 
     private GeneratorVersion() {}
 
-    /** @return the generator version. */
+    /**
+     * @return the generator version.
+     */
     public static String defaultGeneratorVersion() {
         return loadResource(VERSION_RESOURCE_NAME);
     }
