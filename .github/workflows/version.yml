@@ -25,7 +25,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          java-version: '16'
+          java-version: '11' # Gradle 6.4 requires an older JDK
           distribution: 'adopt'
           cache: gradle
       - name: Grant execute permission for gradlew
