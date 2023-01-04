@@ -16,7 +16,6 @@
 
 package org.creekservice.api.json.schema.gradle.plugin;
 
-
 import java.util.List;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.plugins.ExtensionAware;
