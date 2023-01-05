@@ -16,7 +16,6 @@
 
 package org.creekservice;
 
-
 import org.creekservice.api.test.conformity.ConformityTester;
 import org.creekservice.api.test.conformity.check.CheckConstructorsPrivate;
 import org.creekservice.api.test.conformity.check.CheckModule;
