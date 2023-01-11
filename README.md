@@ -1,8 +1,10 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Coverage Status](https://coveralls.io/repos/github/creek-service/creek-json-schema-gradle-plugin/badge.svg?branch=main)](https://coveralls.io/github/creek-service/creek-json-schema-gradle-plugin?branch=main)
 [![build](https://github.com/creek-service/creek-json-schema-gradle-plugin/actions/workflows/build.yml/badge.svg)](https://github.com/creek-service/creek-json-schema-gradle-plugin/actions/workflows/build.yml)
+[![Maven Central](https://img.shields.io/maven-central/v/org.creekservice/creek-json-schema-gradle-plugin.svg)](https://central.sonatype.dev/search?q=creek-json-schema-gradle-plugin)
 [![CodeQL](https://github.com/creek-service/creek-json-schema-gradle-plugin/actions/workflows/codeql.yml/badge.svg)](https://github.com/creek-service/creek-json-schema-gradle-plugin/actions/workflows/codeql.yml)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/creek-service/creek-json-schema-gradle-plugin/badge)](https://api.securityscorecards.dev/projects/github.com/creek-service/creek-json-schema-gradle-plugin)
+[![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/6899/badge)](https://bestpractices.coreinfrastructure.org/projects/6899)
 
 # Creek JSON Schema Gradle Plugin
 
