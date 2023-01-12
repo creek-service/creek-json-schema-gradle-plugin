@@ -22,6 +22,6 @@ plugins {
 
 dependencies {
     implementation("org.codehaus.groovy:groovy-all:3.0.9")
-    implementation("org.creekservice:creek-base-annotation:0.2.0-SNAPSHOT")
+    implementation("org.creekservice:creek-base-annotation:+")
 }
 
