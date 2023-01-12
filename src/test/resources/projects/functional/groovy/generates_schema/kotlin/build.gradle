@@ -23,5 +23,5 @@ plugins {
 dependencies {
     implementation platform('org.jetbrains.kotlin:kotlin-bom')
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
-    implementation 'org.creekservice:creek-base-annotation:0.2.0-SNAPSHOT'
+    implementation 'org.creekservice:creek-base-annotation:+'
 }

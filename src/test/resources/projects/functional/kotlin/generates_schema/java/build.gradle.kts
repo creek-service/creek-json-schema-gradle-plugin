@@ -20,6 +20,6 @@ plugins {
 }
 
 dependencies {
-    api("org.creekservice:creek-base-annotation:0.2.0-SNAPSHOT")
+    api("org.creekservice:creek-base-annotation:+")
     implementation("com.google.guava:guava:31.1-jre")
 }

@@ -18,23 +18,7 @@ See [CreekService.org](https://www.creekservice.org) for info on Creek Service.
 ## Usage
 
 The plugin is available on the [Gradle Plugin Portal][pluginPortal].
-To use the JSON Schema plugin, include the following in your build script:
-
-##### Groovy: Using the JSON Schema plugin
-```groovy
-plugins {
-    id 'org.creekservice.schema.json' version '0.2.0'
-}
-```
-
-##### Kotlin: Using the JSON Schema plugin
-```kotlin
-plugins {
-    id("org.creekservice.schema.json") version "0.2.0"
-}
-```
-
-This will add the tasks below, with default configuration.
+See the portal for instructions on how to add the plugin to your build.
 
 ## Tasks
 
@@ -100,17 +84,19 @@ when generating schemas.
 By default, the plugin generates JSON schema using the [JSON schema generator][7] of the same version. However,
 you can configure the generator version via the `jsonSchemaGenerator` dependency configuration.
 
+For example, the following would always use the latest available generator:
+
 ##### Groovy: Custom JSON Schema executor version
 ```groovy
 dependencies {
-    jsonSchemaGenerator 'org.creekservice:creek-json-schema-generator:0.2.0'
+    jsonSchemaGenerator 'org.creekservice:creek-json-schema-generator:+'
 }
 ```
 
 ##### Kotlin: Custom JSON Schema executor version
 ```kotlin
 dependencies {
-    jsonSchemaGenerator("org.creekservice:creek-json-schema-generator:0.2.0")
+    jsonSchemaGenerator("org.creekservice:creek-json-schema-generator:+")
 }
 ```
 
