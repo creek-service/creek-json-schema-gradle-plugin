@@ -32,6 +32,8 @@ public final class GeneratorVersion {
     private GeneratorVersion() {}
 
     /**
+     * The default generator version.
+     *
      * @return the generator version.
      */
     public static String defaultGeneratorVersion() {
