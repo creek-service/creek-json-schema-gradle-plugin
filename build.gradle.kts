@@ -27,6 +27,12 @@ plugins {
 
 project.version = scmVersion.version
 
+allprojects {
+    tasks.jar {
+        onlyIf { sourceSets.main.get().allSource.files.isNotEmpty() }
+    }
+}
+
 val creekVersion = "0.3.2-SNAPSHOT"
 val guavaVersion = "31.1-jre"               // https://mvnrepository.com/artifact/com.google.guava/guava
 val log4jVersion = "2.19.0"                 // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
