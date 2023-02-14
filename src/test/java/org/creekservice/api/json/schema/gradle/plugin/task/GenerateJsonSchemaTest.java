@@ -176,7 +176,8 @@ class GenerateJsonSchemaTest {
         assertThat(
                 result.getOutput(),
                 containsString(
-                        "--subtype-scanning-allowed-packages=[com.acme.test.sub, com.acme.models.sub]"));
+                        "--subtype-scanning-allowed-packages=[com.acme.test.sub,"
+                                + " com.acme.models.sub]"));
     }
 
     @CartesianTest
@@ -194,7 +195,8 @@ class GenerateJsonSchemaTest {
         assertThat(
                 result.getOutput(),
                 containsString(
-                        "No JSON schema generator dependency found in jsonSchemaGenerator configuration."));
+                        "No JSON schema generator dependency found in jsonSchemaGenerator"
+                                + " configuration."));
     }
 
     @CartesianTest
@@ -249,7 +251,8 @@ class GenerateJsonSchemaTest {
         assertThat(
                 result.getOutput(),
                 containsString(
-                        "--subtype-scanning-allowed-packages=[org.test.sub.one, org.test.sub.two]"));
+                        "--subtype-scanning-allowed-packages=[org.test.sub.one,"
+                                + " org.test.sub.two]"));
     }
 
     @CartesianTest
