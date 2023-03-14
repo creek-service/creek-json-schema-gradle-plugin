@@ -1,23 +1,25 @@
 # A Workflow for messing around in.
 
-name: Playgroup
+name: "Dependabot: Auto-merge"
 on:
   pull_request:
     branches:
       - main
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   dependabot:
     runs-on: ubuntu-latest
     if: ${{ github.actor == 'dependabot[bot]' }}
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Dependabot metadata
         id: metadata
-        uses: dependabot/fetch-metadata@v1
+        uses: dependabot/fetch-metadata@4de7a6c08ce727a42e0adbbdc345f761a01240ce # v1.3.6
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
       - name: Approve PR
