@@ -16,7 +16,7 @@
 
 plugins {
     id("org.creekservice.schema.json")
-    id("org.jetbrains.kotlin.jvm") version "1.5.31"
+    id("org.jetbrains.kotlin.jvm") version "1.6.21"
     `java-library`
 }
 
