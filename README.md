@@ -12,8 +12,16 @@ A Gradle plugin for generating JSON schemas from code using the [Creel JSON Sche
 
 See [CreekService.org](https://www.creekservice.org) for info on Creek Service.
 
-> ### NOTE
-> The plugin works with Gradle 6.4 and above.
+-## Supported Gradle versions
+
+| Gradle Version | Tested version | Notes                                       |
+|----------------|----------------|---------------------------------------------|
+| < 6.4          |                | Not compatible due to API changes in Gradle |
+| 6.4.+          | 6.4            | Supported & tested                          |
+| 6.4+           | 6.9.4          | Supported & tested                          |
+| 7.+            | 7.6.1          | Supported & tested                          |
+| 8.+            | 8.0.2          | Supported & tested                          |
+| > 8.0.2        |                | Not currently tested. Should work...        |
 
 ## Usage
 
