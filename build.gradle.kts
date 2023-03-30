@@ -60,10 +60,6 @@ dependencies {
     testRuntimeOnly("org.creekservice:creek-json-schema-generator:$creekVersion")
 }
 
-pluginBundle {
-    tags = tags + listOf("json", "schema", "jsonschema", "json-schema", "schema-generator", "generator")
-}
-
 gradlePlugin {
     plugins {
         register("CreekPlugin") {
@@ -71,6 +67,7 @@ gradlePlugin {
             implementationClass = "org.creekservice.api.json.schema.gradle.plugin.JsonSchemaPlugin"
             displayName = "Creek JSON schema generator plugin"
             description = "Generates JSON schemas from JVM types"
+            tags.set(listOf("creek", "creekservice", "json", "schema", "jsonschema", "json-schema", "schema-generator", "generator"))
         }
     }
 }
