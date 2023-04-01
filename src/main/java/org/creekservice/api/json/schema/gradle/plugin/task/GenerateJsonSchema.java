@@ -245,10 +245,20 @@ public abstract class GenerateJsonSchema extends DefaultTask {
                             spec.getMainClass()
                                     .set(
                                             "org.creekservice.api.json.schema.generator.JsonSchemaGenerator");
+                            spec.getMainModule().set("creek.json.schema.generator");
+                            spec.getModularity().getInferModulePath().set(useModulePath());
                             spec.setClasspath(classPath);
                             spec.setArgs(arguments());
                             spec.jvmArgs(jvmArgs());
                         });
+    }
+
+    private boolean useModulePath() {
+        // If module white lists are provided, run from module-path,
+        // Otherwise, from class-path, as some languages, e.g. Groovy, don't play well with
+        // module-path yet.
+        return !getTypeScanningModuleWhiteList().getOrElse(List.of()).isEmpty()
+                || !getSubtypeScanningModuleWhiteList().getOrElse(List.of()).isEmpty();
     }
 
     private void checkDependenciesIncludesRunner() {
@@ -300,12 +310,18 @@ public abstract class GenerateJsonSchema extends DefaultTask {
     }
 
     private List<String> jvmArgs() {
-        final Object jvmArgs = getProject().findProperty("org.gradle.jvmargs");
-        if ((!(jvmArgs instanceof String))) {
-            return List.of();
+        final List<String> args = new ArrayList<>();
+        if (useModulePath()) {
+            args.add("--add-modules=ALL-MODULE-PATH");
         }
 
-        return List.of(((String) jvmArgs).split("\\s+"));
+        final Object jvmArgs = getProject().findProperty("org.gradle.jvmargs");
+        if ((!(jvmArgs instanceof String))) {
+            return args;
+        }
+
+        args.addAll(List.of(((String) jvmArgs).split("\\s+")));
+        return args;
     }
 
     private static final class MissingExecutorDependencyException extends GradleException {
