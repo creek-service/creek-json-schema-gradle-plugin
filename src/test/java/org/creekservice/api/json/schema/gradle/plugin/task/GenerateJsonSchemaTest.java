@@ -130,6 +130,13 @@ class GenerateJsonSchemaTest {
                 matchesPattern(
                         Pattern.compile(
                                 ".*--class-path=.*build/classes/java/main:.*", Pattern.DOTALL)));
+        assertThat(
+                "Should be running from the class-path",
+                result.getOutput(),
+                matchesPattern(
+                        Pattern.compile(
+                                ".*^--class-path=[^\n\r]*creek-json-schema-generator.*",
+                                Pattern.MULTILINE | Pattern.DOTALL)));
     }
 
     @CartesianTest
@@ -178,6 +185,13 @@ class GenerateJsonSchemaTest {
                 containsString(
                         "--subtype-scanning-allowed-packages=[com.acme.test.sub,"
                                 + " com.acme.models.sub]"));
+        assertThat(
+                "Should be running from the module-path",
+                result.getOutput(),
+                matchesPattern(
+                        Pattern.compile(
+                                ".*^--module-path=[^\n\r]*creek-json-schema-generator.*",
+                                Pattern.MULTILINE | Pattern.DOTALL)));
     }
 
     @CartesianTest
