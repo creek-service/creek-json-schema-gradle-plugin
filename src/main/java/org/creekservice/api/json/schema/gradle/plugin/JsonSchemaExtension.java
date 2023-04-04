@@ -42,6 +42,11 @@ public abstract class JsonSchemaExtension implements ExtensionAware {
          *
          * <p>Default: empty, meaning all modules will be scanned.
          *
+         * <p><b>NOTE</b>: Setting a non-empty module whitelist also causes the schema generator to
+         * be executed from the module-path, rather than the default class-path, i.e. the generator
+         * will run under the JPMS. This can run into issues with split packages, i.e. the same
+         * package exposed from multiple jars.
+         *
          * @return the module whitelist property
          */
         public abstract ListProperty<String> getModuleWhiteList();
@@ -134,7 +139,9 @@ public abstract class JsonSchemaExtension implements ExtensionAware {
     /**
      * Optional list of additional arguments to pass to the generator.
      *
-     * <p>See https://github.com/creek-service/creek-json-schema/tree/main/generator for more info.
+     * <p>See the <a
+     * href="https://github.com/creek-service/creek-json-schema/tree/main/generator">docs</a> for
+     * more info.
      *
      * <p>Default: none.
      *
