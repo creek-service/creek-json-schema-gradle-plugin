@@ -22,7 +22,7 @@ plugins {
     `creek-plugin-publishing-convention`
     `creek-sonatype-publishing-convention`
     id("com.gradle.plugin-publish")
-    id("pl.allegro.tech.build.axion-release") version "1.15.0" // https://plugins.gradle.org/plugin/pl.allegro.tech.build.axion-release
+    id("pl.allegro.tech.build.axion-release") version "1.15.3" // https://plugins.gradle.org/plugin/pl.allegro.tech.build.axion-release
 }
 
 project.version = scmVersion.version
