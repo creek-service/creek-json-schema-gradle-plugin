@@ -32,7 +32,7 @@ See the portal for instructions on how to add the plugin to your build.
 
 The JSON Schema plugin adds the following tasks to your project:
 
-### generateJsonSchema - `GenerateJsonSchema`[5]
+### generateJsonSchema - [GenerateJsonSchema][5]
 
 > ### NOTE
 > Details of how to annotate classes to control their schema can be found in the [Creek JSON Schema Generator docs][1].
@@ -70,6 +70,21 @@ For example, the following limits the class & module path scanning to only two m
     --type-scanning-allowed-module=acme.finance.momdel \
     --type-scanning-allowed-module=acme.sales.model
 ```
+
+### generateTestJsonSchema - [GenerateJsonSchema][5]
+
+> ### NOTE
+> Details of how to annotate classes to control their schema can be found in the [Creek JSON Schema Generator docs][1].
+
+> ### NOTE
+> Restricting class & module path scanning by setting allowed modules and allowed packages can increase the speed of your build.
+
+*Dependencies:* `compileTestJava`, `compileTestKotlin`, `compileTestGroovy` if they exist.
+*Dependants:* `processTestResources`
+
+The `generateTestJsonSchema` works the same as [generateJsonSchema](#generatejsonschema---generatejsonschema5), only
+for test code. 
+
 
 ### clean*TaskName* - `Delete`
 
@@ -270,22 +285,28 @@ creek.schema.json {
 ## JSON Schema Generation
 
 The `generateJsonSchema` task generates YAML files containing the JSON schema of each `@GeneratesSchema` annotated type
-it encounters. By default, these are written to `$buildDir/generated/resources/schema/schema/json`, with
-`$buildDir/generated/resources/schema` being added as a resource root. This means the schema files generated will 
+it encounters. By default, these are written to `$buildDir/generated/resources/schema/main/schema/json`, with
+`$buildDir/generated/resources/schema/main` being added as a resource root. This means the schema files generated will 
 be included in the jar under a `schema/json` directory.
+
+The `generateTestJsonSchema` task outputs to the `$buildDir/generated/resources/schema/test/schema/json`, with
+`$buildDir/generated/resources/schema/test` being added as a resource root.
 
 ### Changing schema file location
 
 The location where schema files are written can be changed by changing either:
 
-* `creek.schema.json.schemaResourceRoot`: the resource root for schema, defaulting to `$buildDir/generated/resources/schema`, or
-* `creek.schema.json.outputDirectoryName`: the name of the subdirectory under `creek.schema.json.schemaResourceRoot` where schemas will be written,
-   and defining the relative path to the schema files within the resulting jar file.
+* `creek.schema.json.schemaResourceRoot`: the resource root for schema, defaulting to `$buildDir/generated/resources/schema/main`, or
+* `creek.schema.json.testSchemaResourceRoot`: the resource root for test schema, defaulting to `$buildDir/generated/resources/schema/test`, or
+* `creek.schema.json.outputDirectoryName`: the name of the subdirectory under `creek.schema.json.schemaResourceRoot` and
+  `creek.schema.json.testSchemaResourceRoot` where schemas will be written, 
+  and defining the relative path to the schema files within the resulting jar file.
 
 ##### Groovy: Customising schema file output location
 ```groovy
 creek.schema.json {
   schemaResourceRoot = file("$buildDir/custom/build/path")
+  testSchemaResourceRoot = file("$buildDir/custom/build/path/for/test/schema")
   outputDirectoryName = "custom/path/within/jar"
 }
 ```
@@ -294,6 +315,7 @@ creek.schema.json {
 ```kotlin
 creek.schema.json {
     schemaResourceRoot.set(file("$buildDir/custom/build/path"))
+    testSchemaResourceRoot.set(file("$buildDir/custom/build/path/for/test/schema"))
     outputDirectoryName.set("custom/path/within/jar")
 }
 ```
@@ -301,7 +323,7 @@ creek.schema.json {
 ## JVM Language support
 
 Currently, the plugin automatically configures tasks to work with the standard Java, Groovy and Kotlin plugins. 
-Schema generation tasks are configured to read the output of `compileJava`, `compileGroovy` and `compileKotlin`
+Schema generation tasks are configured to read the output of `compile[Test]Java`, `compile[Test]Groovy` and `compile[Test]Kotlin`
 tasks if they are present in the project.
 
 Support for other JVM languages may be added later, or you may be able to configure your own instance of `GenerateJsonSchema`

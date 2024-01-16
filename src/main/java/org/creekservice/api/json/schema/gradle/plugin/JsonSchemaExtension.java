@@ -124,8 +124,17 @@ public abstract class JsonSchemaExtension implements ExtensionAware {
     public abstract DirectoryProperty getSchemaResourceRoot();
 
     /**
-     * Optional name of the directory under the {@link #getSchemaResourceRoot() resource root} where
-     * the schema will be written.
+     * Optional resource root where generated test schemas should be stored
+     *
+     * <p>Default: {@code $buildDir/generated/test-resources/schema}
+     *
+     * @return the test resource root property.
+     */
+    public abstract DirectoryProperty getTestSchemaResourceRoot();
+
+    /**
+     * Optional name of the directory under the {@link #getSchemaResourceRoot() resource root} and
+     * {@link #getTestSchemaResourceRoot() test resource root} where the schema will be written.
      *
      * <p>This corresponds to the directory under which schema files will be located within the
      * compiled jar file.
