@@ -22,7 +22,8 @@ plugins {
 creek {
     schema {
         json {
-            schemaResourceRoot = file("$buildDir/custom/path")
+            schemaResourceRoot = file("$buildDir/custom/path/main")
+            testSchemaResourceRoot = file("$buildDir/custom/path/test")
             outputDirectoryName = 'bob'
             extraArguments '--echo-only'
 

@@ -23,4 +23,11 @@ plugins {
 dependencies {
     implementation 'org.codehaus.groovy:groovy-all:3.0.9'
     implementation 'org.creekservice:creek-base-annotation:+'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.1'
+}
+
+tasks.test {
+    useJUnitPlatform()
 }

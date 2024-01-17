@@ -22,4 +22,11 @@ plugins {
 dependencies {
     api("org.creekservice:creek-base-annotation:+")
     implementation("com.google.guava:guava:31.1-jre")
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.1")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
