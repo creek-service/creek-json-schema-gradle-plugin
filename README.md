@@ -20,8 +20,8 @@ See [CreekService.org](https://www.creekservice.org) for info on Creek Service.
 | 6.4.+          | 6.4            | Supported & tested                          |
 | 6.4+           | 6.9.4          | Supported & tested                          |
 | 7.+            | 7.6.1          | Supported & tested                          |
-| 8.+            | 8.0.2          | Supported & tested                          |
-| > 8.0.2        |                | Not currently tested. Should work...        |
+| 8.+            | 8.5            | Supported & tested                          |
+| > 8.5          |                | Not currently tested. Should work...        |
 
 ## Usage
 
@@ -44,8 +44,8 @@ The JSON Schema plugin adds the following tasks to your project:
 *Dependants:* `processResources`
 
 The `generateJsonSchema` task searches the class and module path for with [`@GeneratesSchema`][2] and write out
-JSON schemas for them in YAML. The generated schemas are added to the `main` resource set, meaning they will be included
-in any generated jar.
+JSON schemas for them in YAML. The generated schema output directory is added to the `main` source set, 
+as an additional resource directories, meaning the schema will be included in any generated jar.
 
 Types can be annotated both with [Jackson][3] and [JsonSchema][4] annotations, allowing control of the generated schema.
 
@@ -83,8 +83,12 @@ For example, the following limits the class & module path scanning to only two m
 *Dependants:* `processTestResources`
 
 The `generateTestJsonSchema` works the same as [generateJsonSchema](#generatejsonschema---generatejsonschema5), only
-for test code. 
+for test code. The generated schema output directory is added to the `test` source set,
+as an additional resource directories, meaning the schema will be available during unit testing.
 
+**NOTE**: due to a [bug](https://github.com/java9-modularity/gradle-modules-plugin/issues/227) in the `org.javamodularity.moduleplugin` Gradle plugin, 
+generated resources are NOT patched in to the module during unit testing. 
+This should be fixed once https://github.com/java9-modularity/gradle-modules-plugin/pull/228 is merged and released.
 
 ### clean*TaskName* - `Delete`
 
