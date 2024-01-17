@@ -62,7 +62,9 @@ class GenerateJsonSchemaTest {
     private static final Path TEST_DIR =
             PROJECT_DIR.resolve("src/test/resources/projects/functional").toAbsolutePath();
 
-    private static final String TASK_NAME = ":generateJsonSchema";
+    private static final String GENERATE_TASK_NAME = ":generateJsonSchema";
+    private static final String GENERATE_TEST_TASK_NAME = ":generateTestJsonSchema";
+    private static final String TEST_TASK_NAME = ":test";
     private static final String INIT_SCRIPT = "--init-script=" + TEST_DIR.resolve("init.gradle");
 
     @TempDir private Path projectDir;
@@ -80,10 +82,11 @@ class GenerateJsonSchemaTest {
         givenProject(flavour + "/no-source-sets");
 
         // When:
-        final BuildResult result = executeTask(ExpectedOutcome.PASS, gradleVersion);
+        final BuildResult result =
+                executeTask(GENERATE_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
 
         // Then:
-        assertThat(result.task(TASK_NAME).getOutcome(), is(SKIPPED));
+        assertThat(result.task(GENERATE_TASK_NAME).getOutcome(), is(SKIPPED));
     }
 
     @CartesianTest
@@ -93,10 +96,11 @@ class GenerateJsonSchemaTest {
         givenProject(flavour + "/empty");
 
         // When:
-        final BuildResult result = executeTask(ExpectedOutcome.PASS, gradleVersion);
+        final BuildResult result =
+                executeTask(GENERATE_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
 
         // Then:
-        assertThat(result.task(TASK_NAME).getOutcome(), is(SKIPPED));
+        assertThat(result.task(GENERATE_TASK_NAME).getOutcome(), is(SKIPPED));
     }
 
     @CartesianTest
@@ -106,16 +110,17 @@ class GenerateJsonSchemaTest {
         givenProject(flavour + "/default");
 
         // When:
-        final BuildResult result = executeTask(ExpectedOutcome.PASS, gradleVersion);
+        final BuildResult result =
+                executeTask(GENERATE_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
 
         // Then:
-        assertThat(result.task(TASK_NAME).getOutcome(), is(SUCCESS));
+        assertThat(result.task(GENERATE_TASK_NAME).getOutcome(), is(SUCCESS));
         assertThat(
                 result.getOutput(),
                 containsString(
                         "--output-directory="
                                 + projectDir.resolve(
-                                        "build/generated/resources/schema/schema/json")));
+                                        "build/generated/resources/schema/main/schema/json")));
         assertThat(result.getOutput(), containsString("--type-scanning-allowed-modules=<ANY>"));
         assertThat(result.getOutput(), containsString("--type-scanning-allowed-packages=<ANY>"));
         assertThat(result.getOutput(), containsString("--subtype-scanning-allowed-modules=<ANY>"));
@@ -147,10 +152,11 @@ class GenerateJsonSchemaTest {
         givenProject(flavour + "/specific_version");
 
         // When:
-        final BuildResult result = executeTask(ExpectedOutcome.PASS, gradleVersion);
+        final BuildResult result =
+                executeTask(GENERATE_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
 
         // Then:
-        assertThat(result.task(TASK_NAME).getOutcome(), is(SUCCESS));
+        assertThat(result.task(GENERATE_TASK_NAME).getOutcome(), is(SUCCESS));
         assertThat(result.getOutput(), containsString("JsonSchemaGenerator: 0.2.0-SNAPSHOT"));
     }
 
@@ -161,14 +167,56 @@ class GenerateJsonSchemaTest {
         givenProject(flavour + "/fully_configured");
 
         // When:
-        final BuildResult result = executeTask(ExpectedOutcome.PASS, gradleVersion);
+        final BuildResult result =
+                executeTask(GENERATE_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
 
         // Then:
-        assertThat(result.task(TASK_NAME).getOutcome(), is(SUCCESS));
+        assertThat(result.task(GENERATE_TASK_NAME).getOutcome(), is(SUCCESS));
         assertThat(
                 result.getOutput(),
                 containsString(
-                        "--output-directory=" + projectDir.resolve("build/custom/path/bob")));
+                        "--output-directory=" + projectDir.resolve("build/custom/path/main/bob")));
+        assertThat(
+                result.getOutput(),
+                containsString("--type-scanning-allowed-modules=[acme.test, acme.models]"));
+        assertThat(
+                result.getOutput(),
+                containsString(
+                        "--type-scanning-allowed-packages=[com.acme.test, com.acme.models]"));
+        assertThat(
+                result.getOutput(),
+                containsString(
+                        "--subtype-scanning-allowed-modules=[acme.test.sub, acme.models.sub]"));
+        assertThat(
+                result.getOutput(),
+                containsString(
+                        "--subtype-scanning-allowed-packages=[com.acme.test.sub,"
+                                + " com.acme.models.sub]"));
+        assertThat(
+                "Should be running from the module-path",
+                result.getOutput(),
+                matchesPattern(
+                        Pattern.compile(
+                                ".*^--module-path=[^\n\r]*creek-json-schema-generator.*",
+                                Pattern.MULTILINE | Pattern.DOTALL)));
+    }
+
+    @CartesianTest
+    @MethodFactory("flavoursAndVersions")
+    void shouldExecuteTestWithCustomProperties(final String flavour, final String gradleVersion) {
+        // Given:
+        givenProject(flavour + "/fully_configured");
+
+        // When:
+        final BuildResult result =
+                executeTask(GENERATE_TEST_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
+
+        // Then:
+        assertThat(result.task(GENERATE_TEST_TASK_NAME).getOutcome(), is(SUCCESS));
+        assertThat(
+                result.getOutput(),
+                containsString(
+                        "--output-directory=" + projectDir.resolve("build/custom/path/test/bob")));
         assertThat(
                 result.getOutput(),
                 containsString("--type-scanning-allowed-modules=[acme.test, acme.models]"));
@@ -202,10 +250,11 @@ class GenerateJsonSchemaTest {
         givenProject(flavour + "/missing_generator_dep");
 
         // When:
-        final BuildResult result = executeTask(ExpectedOutcome.FAIL, gradleVersion);
+        final BuildResult result =
+                executeTask(GENERATE_TASK_NAME, ExpectedOutcome.FAIL, gradleVersion);
 
         // Then:
-        assertThat(result.task(TASK_NAME).getOutcome(), is(FAILED));
+        assertThat(result.task(GENERATE_TASK_NAME).getOutcome(), is(FAILED));
         assertThat(
                 result.getOutput(),
                 containsString(
@@ -220,10 +269,11 @@ class GenerateJsonSchemaTest {
         givenProject(flavour + "/invalid_config");
 
         // When:
-        final BuildResult result = executeTask(ExpectedOutcome.FAIL, gradleVersion);
+        final BuildResult result =
+                executeTask(GENERATE_TASK_NAME, ExpectedOutcome.FAIL, gradleVersion);
 
         // Then:
-        assertThat(result.task(TASK_NAME).getOutcome(), is(FAILED));
+        assertThat(result.task(GENERATE_TASK_NAME).getOutcome(), is(FAILED));
         assertThat(result.getOutput(), containsString("Unknown option: '--unsupported-arg'"));
     }
 
@@ -237,6 +287,7 @@ class GenerateJsonSchemaTest {
         // When:
         final BuildResult result =
                 executeTask(
+                        GENERATE_TASK_NAME,
                         ExpectedOutcome.PASS,
                         gradleVersion,
                         "--extra-argument=--echo-only",
@@ -250,7 +301,7 @@ class GenerateJsonSchemaTest {
                         "--subtype-scanning-allowed-package=org.test.sub.two");
 
         // Then:
-        assertThat(result.task(TASK_NAME).getOutcome(), is(SUCCESS));
+        assertThat(result.task(GENERATE_TASK_NAME).getOutcome(), is(SUCCESS));
         assertThat(
                 result.getOutput(),
                 containsString("--type-scanning-allowed-modules=[acme.test, acme.model]"));
@@ -291,7 +342,8 @@ class GenerateJsonSchemaTest {
         // Given:
         givenProject(flavour + "/default");
         final Path resultsDir =
-                givenDirectory(projectDir.resolve("build/generated/resources/schema/schema/json"));
+                givenDirectory(
+                        projectDir.resolve("build/generated/resources/schema/main/schema/json"));
 
         // When:
         final BuildResult result =
@@ -309,10 +361,11 @@ class GenerateJsonSchemaTest {
         givenProject(flavour + "/other_creek_plugin");
 
         // When:
-        final BuildResult result = executeTask(ExpectedOutcome.PASS, gradleVersion);
+        final BuildResult result =
+                executeTask(GENERATE_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
 
         // Then:
-        assertThat(result.task(TASK_NAME).getOutcome(), is(SUCCESS));
+        assertThat(result.task(GENERATE_TASK_NAME).getOutcome(), is(SUCCESS));
     }
 
     @CartesianTest
@@ -325,14 +378,38 @@ class GenerateJsonSchemaTest {
         givenProject(flavour + "/generates_schema/" + language);
         final Path expectedSchemaDir = givenDirectory(projectDir.resolve("expected"));
         final Path actualSchemaDir =
-                givenDirectory(projectDir.resolve("build/generated/resources/schema/schema/json"));
+                givenDirectory(
+                        projectDir.resolve("build/generated/resources/schema/main/schema/json"));
 
         // When:
-        final BuildResult result = executeTask(ExpectedOutcome.PASS, gradleVersion);
+        final BuildResult result = executeTask(TEST_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
 
         // Then:
-        assertThat(result.task(TASK_NAME).getOutcome(), is(SUCCESS));
+        assertThat(result.task(GENERATE_TASK_NAME).getOutcome(), is(SUCCESS));
         assertSchemas(actualSchemaDir, expectedSchemaDir);
+        assertThat(result.task(TEST_TASK_NAME).getOutcome(), is(SUCCESS));
+    }
+
+    @CartesianTest
+    @MethodFactory("flavoursVersionsAndLanguage")
+    void shouldWriteOutTestSchemaFiles(
+            final String flavour, final String gradleVersion, final String language) {
+        assumeTrue(supported(gradleVersion, language));
+
+        // Given:
+        givenProject(flavour + "/generates_test_schema/" + language);
+        final Path expectedSchemaDir = givenDirectory(projectDir.resolve("expected"));
+        final Path actualSchemaDir =
+                givenDirectory(
+                        projectDir.resolve("build/generated/resources/schema/test/schema/json"));
+
+        // When:
+        final BuildResult result = executeTask(TEST_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
+
+        // Then:
+        assertThat(result.task(GENERATE_TEST_TASK_NAME).getOutcome(), is(SUCCESS));
+        assertSchemas(actualSchemaDir, expectedSchemaDir);
+        assertThat(result.task(TEST_TASK_NAME).getOutcome(), is(SUCCESS));
     }
 
     @Test
@@ -356,13 +433,6 @@ class GenerateJsonSchemaTest {
     private enum ExpectedOutcome {
         PASS,
         FAIL
-    }
-
-    private BuildResult executeTask(
-            final ExpectedOutcome expectedOutcome,
-            final String gradleVersion,
-            final String... additionalArgs) {
-        return executeTask(TASK_NAME, expectedOutcome, gradleVersion, additionalArgs);
     }
 
     private BuildResult executeTask(
@@ -444,7 +514,7 @@ class GenerateJsonSchemaTest {
     private static ArgumentSets flavoursAndVersions() {
         final Collection<?> flavours = List.of("kotlin", "groovy");
         // Note: update root README.md when updating this test dimension:
-        final Collection<?> gradleVersions = List.of("6.4", "6.9.4", "7.6.1", "8.0.2");
+        final Collection<?> gradleVersions = List.of("6.4", "6.9.4", "7.6.1", "8.5");
         return ArgumentSets.argumentsForFirstParameter(flavours)
                 .argumentsForNextParameter(gradleVersions);
     }
