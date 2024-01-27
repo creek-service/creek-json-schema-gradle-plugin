@@ -39,7 +39,6 @@ val log4jVersion = "2.22.1"                 // https://mvnrepository.com/artifac
 val junitVersion = "5.10.1"                  // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
 val junitPioneerVersion = "2.2.0"           // https://mvnrepository.com/artifact/org.junit-pioneer/junit-pioneer
 val mockitoVersion = "5.8.0"                // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
-val hamcrestVersion = "2.2"                 // https://mvnrepository.com/artifact/org.hamcrest/hamcrest-core
 
 dependencies {
     // Avoid non-test dependencies in plugins.
@@ -51,9 +50,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
     testImplementation("org.junit-pioneer:junit-pioneer:$junitPioneerVersion")
     testImplementation("org.mockito:mockito-junit-jupiter:$mockitoVersion")
-    testImplementation("org.hamcrest:hamcrest-core:$hamcrestVersion")
     testImplementation("com.google.guava:guava-testlib:$guavaVersion")
-    testImplementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
     testRuntimeOnly("org.apache.logging.log4j:log4j-slf4j2-impl:$log4jVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
     // The following dependency is only added to force GitHub Dependency Bot to take the generator version into account
