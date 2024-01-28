@@ -19,6 +19,7 @@ package org.creekservice.api.json.schema.gradle.plugin.task;
 import static org.creekservice.api.json.schema.gradle.plugin.JsonSchemaPlugin.GENERATOR_DEP_ARTEFACT_NAME;
 import static org.creekservice.api.json.schema.gradle.plugin.JsonSchemaPlugin.GENERATOR_DEP_GROUP_NAME;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -185,15 +186,26 @@ public abstract class GenerateJsonSchema extends DefaultTask {
     public abstract DirectoryProperty getSchemaResourceRoot();
 
     /**
-     * The name of the directory under the {@link #getSchemaResourceRoot() resource root} where the
-     * schema will be written.
+     * Optionally, provide a specific directory to generate schemas into.
      *
-     * <p>This corresponds to the directory under which schema files will be located within the
-     * compiled jar file.
+     * <p>By default, schemas will be generated in a package directory structure under the {@link
+     * #getSchemaResourceRoot() resource root}, and the schema filename will match the simple name
+     * of the type.
+     *
+     * <p>If this directory name is set, schemas will be generated into a single flat directly under
+     * the {@link #getSchemaResourceRoot() resource root}, and the schema filename will match the
+     * types fully-qualified name.
+     *
+     * <p>For example, given a type {@code io.acme.financial.model.Account}, the default schema
+     * location is {@link #getSchemaResourceRoot() resource-root}{@code
+     * /io/acme/financial/model/Account.yml}. If this output directory property is set, then the
+     * schema location is {@link #getSchemaResourceRoot() resource-root}{@code
+     * /output-directory/io.acme.financial.model.Account.yml}.
      *
      * @return output directory property.
      */
     @Input
+    @org.gradle.api.tasks.Optional
     public abstract Property<String> getOutputDirectoryName();
 
     /**
@@ -283,14 +295,16 @@ public abstract class GenerateJsonSchema extends DefaultTask {
 
     private List<String> arguments() {
         final List<String> arguments = new ArrayList<>();
-        arguments.add(
-                "--output-directory="
-                        + getSchemaResourceRoot()
-                                .getAsFile()
-                                .get()
-                                .toPath()
-                                .resolve(getOutputDirectoryName().get())
-                                .toAbsolutePath());
+
+        final Path outputRoot = getSchemaResourceRoot().getAsFile().get().toPath().toAbsolutePath();
+
+        final String outputDir = getOutputDirectoryName().getOrNull();
+        if (outputDir == null) {
+            arguments.add("--output-directory=" + outputRoot);
+        } else {
+            arguments.add("--output-directory=" + outputRoot.resolve(outputDir));
+            arguments.add("--output-strategy=flatDirectory");
+        }
 
         getTypeScanningModuleWhiteList()
                 .get()
