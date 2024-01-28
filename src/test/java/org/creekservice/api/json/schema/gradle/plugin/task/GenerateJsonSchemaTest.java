@@ -41,6 +41,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.creekservice.api.test.util.TestPaths;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
@@ -119,8 +120,8 @@ class GenerateJsonSchemaTest {
                 result.getOutput(),
                 containsString(
                         "--output-directory="
-                                + projectDir.resolve(
-                                        "build/generated/resources/schema/main/schema/json")));
+                                + projectDir.resolve("build/generated/resources/schema/main")));
+        assertThat(result.getOutput(), containsString("--output-strategy=directoryTree"));
         assertThat(result.getOutput(), containsString("--type-scanning-allowed-modules=<ANY>"));
         assertThat(result.getOutput(), containsString("--type-scanning-allowed-packages=<ANY>"));
         assertThat(result.getOutput(), containsString("--subtype-scanning-allowed-modules=<ANY>"));
@@ -342,8 +343,7 @@ class GenerateJsonSchemaTest {
         // Given:
         givenProject(flavour + "/default");
         final Path resultsDir =
-                givenDirectory(
-                        projectDir.resolve("build/generated/resources/schema/main/schema/json"));
+                givenDirectory(projectDir.resolve("build/generated/resources/schema/main"));
 
         // When:
         final BuildResult result =
@@ -370,12 +370,33 @@ class GenerateJsonSchemaTest {
 
     @CartesianTest
     @MethodFactory("flavoursVersionsAndLanguage")
-    void shouldWriteOutSchemaFiles(
+    void shouldWriteOutSchemaFilesAsDirectoryTree(
             final String flavour, final String gradleVersion, final String language) {
         assumeTrue(supported(gradleVersion, language));
 
         // Given:
         givenProject(flavour + "/generates_schema/" + language);
+        final Path expectedSchemaDir = givenDirectory(projectDir.resolve("expected"));
+        final Path actualSchemaDir =
+                givenDirectory(projectDir.resolve("build/generated/resources/schema/main"));
+
+        // When:
+        final BuildResult result = executeTask(TEST_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
+
+        // Then:
+        assertThat(result.task(GENERATE_TASK_NAME).getOutcome(), is(SUCCESS));
+        assertSchemas(actualSchemaDir, expectedSchemaDir);
+        assertThat(result.task(TEST_TASK_NAME).getOutcome(), is(SUCCESS));
+    }
+
+    @CartesianTest
+    @MethodFactory("flavoursVersionsAndLanguage")
+    void shouldWriteOutSchemaFilesAsFlatDirectory(
+            final String flavour, final String gradleVersion, final String language) {
+        assumeTrue(supported(gradleVersion, language));
+
+        // Given:
+        givenProject(flavour + "/generates_flat_schema/" + language);
         final Path expectedSchemaDir = givenDirectory(projectDir.resolve("expected"));
         final Path actualSchemaDir =
                 givenDirectory(
@@ -400,8 +421,7 @@ class GenerateJsonSchemaTest {
         givenProject(flavour + "/generates_test_schema/" + language);
         final Path expectedSchemaDir = givenDirectory(projectDir.resolve("expected"));
         final Path actualSchemaDir =
-                givenDirectory(
-                        projectDir.resolve("build/generated/resources/schema/test/schema/json"));
+                givenDirectory(projectDir.resolve("build/generated/resources/schema/test"));
 
         // When:
         final BuildResult result = executeTask(TEST_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
@@ -469,14 +489,8 @@ class GenerateJsonSchemaTest {
     }
 
     private void assertSchemas(final Path actualSchemaDir, final Path expectedSchemaDir) {
-        final List<Path> actualPaths =
-                TestPaths.listDirectory(actualSchemaDir)
-                        .sorted()
-                        .collect(Collectors.toUnmodifiableList());
-        final List<Path> expectedPaths =
-                TestPaths.listDirectory(expectedSchemaDir)
-                        .sorted()
-                        .collect(Collectors.toUnmodifiableList());
+        final List<Path> actualPaths = schemaFiles(actualSchemaDir);
+        final List<Path> expectedPaths = schemaFiles(expectedSchemaDir);
         assertThat("Sanity check", expectedPaths, is(not(empty())));
 
         for (int idx = 0; idx < expectedPaths.size(); idx++) {
@@ -485,7 +499,11 @@ class GenerateJsonSchemaTest {
                 throw new AssertionError(
                         "Expected schema not output by task: " + expectedPath.toUri());
             }
-            assertThat(readSchema(actualPaths.get(idx)), is(readSchema(expectedPath)));
+            final Path actualPath = actualPaths.get(idx);
+            assertThat(
+                    actualSchemaDir.relativize(actualPath),
+                    is(expectedSchemaDir.relativize(expectedPath)));
+            assertThat(readSchema(actualPath), is(readSchema(expectedPath)));
         }
 
         if (actualPaths.size() > expectedPaths.size()) {
@@ -497,6 +515,12 @@ class GenerateJsonSchemaTest {
                                     Collectors.joining(
                                             System.lineSeparator(), System.lineSeparator(), ""));
             throw new AssertionError("Unexpected schemas output by task: " + unexpected);
+        }
+    }
+
+    private static List<Path> schemaFiles(final Path expectedSchemaDir) {
+        try (Stream<Path> s = TestPaths.listDirectoryRecursive(expectedSchemaDir)) {
+            return s.filter(Files::isRegularFile).sorted().collect(Collectors.toUnmodifiableList());
         }
     }
 
