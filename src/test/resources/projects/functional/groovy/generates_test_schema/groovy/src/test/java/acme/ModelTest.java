@@ -25,7 +25,7 @@ class ModelTest {
 
     @Test
     void shouldLoadSchemaAsResource() {
-        final Path path = Path.of(File.separator, "schema", "json", "acme.model.yml");
+        final Path path = Path.of(File.separator, "acme", "Model.yml");
         final URL resource = ModelTest.class.getResource(path.toString());
         if (resource == null) {
             throw new AssertionError("resource not found: " + path);

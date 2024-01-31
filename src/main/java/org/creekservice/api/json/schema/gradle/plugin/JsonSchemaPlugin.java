@@ -65,9 +65,6 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
     /** Default test resource root */
     public static final String DEFAULT_TEST_RESOURCE_ROOT = "generated/resources/schema/test";
 
-    /** Default output folder under the resource root. */
-    public static final String DEFAULT_OUTPUT_FOLDER = "schema/json";
-
     /** Artifact group for generator */
     public static final String GENERATOR_DEP_GROUP_NAME = "org.creekservice";
 
@@ -106,7 +103,7 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
                 .getTestSchemaResourceRoot()
                 .convention(
                         project.getLayout().getBuildDirectory().dir(DEFAULT_TEST_RESOURCE_ROOT));
-        extension.getOutputDirectoryName().convention(DEFAULT_OUTPUT_FOLDER);
+        extension.getOutputDirectoryName().convention((String) null);
         extension.getExtraArguments().convention(List.of());
         return extension;
     }

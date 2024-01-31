@@ -23,6 +23,8 @@ See [CreekService.org](https://www.creekservice.org) for info on Creek Service.
 | 8.+            | 8.5            | Supported & tested                          |
 | > 8.5          |                | Not currently tested. Should work...        |
 
+// Todo: update Gradle matrix
+
 ## Usage
 
 The plugin is available on the [Gradle Plugin Portal][pluginPortal].
@@ -205,6 +207,8 @@ creek.schema.json {
 }
 ```
 
+// Todo: discuyss module plugin and $moduleName
+
 ## Speeding up class scanning
 
 The [generator][1] scans the class and module paths of the JVM to find:
@@ -305,6 +309,8 @@ The location where schema files are written can be changed by changing either:
 * `creek.schema.json.outputDirectoryName`: the name of the subdirectory under `creek.schema.json.schemaResourceRoot` and
   `creek.schema.json.testSchemaResourceRoot` where schemas will be written, 
   and defining the relative path to the schema files within the resulting jar file.
+  This defaults to not being set, which causes the plugin to outputting schemas under a package directory structure.
+  If this property is set, schemas will be generated into the specified flat directory, where the filename matches that full class name. 
 
 ##### Groovy: Customising schema file output location
 ```groovy
@@ -321,6 +327,33 @@ creek.schema.json {
     schemaResourceRoot.set(file("$buildDir/custom/build/path"))
     testSchemaResourceRoot.set(file("$buildDir/custom/build/path/for/test/schema"))
     outputDirectoryName.set("custom/path/within/jar")
+}
+```
+
+### Resources in Java Modules
+
+Java 9 introduced the JPMS which, by default, encapsulates classes _and resources_.
+Resources, for example generated schema files, that are not in the root of jar, 
+are encapsulated by default, i.e. not accessible from outside the module, 
+unless the module definition explicitly `opens` the package the resource is in.
+
+Additionally, modules require each module to expose _unique_ packages.
+
+With default configuration this plugin will generate schemas under a resource root using the same directory structure as the source types,
+i.e. the schema file will be in the same package as the type it was built from in the jar file.
+
+If you wish the generated schema resources to be accessible from other modules, then the module definition must
+include an `opens` statement for the package containing the source types.
+
+For example, given types that generate schemas in an `acme.finance.model` package, ensure:
+
+```java
+module acme.model {
+    // Export the package types to everyone, i.e. the code:
+    exports acme.finance.model;
+
+    // Open the package resources to everyone, i.e. the schema files:
+    opens acme.finance.model;
 }
 ```
 
