@@ -20,8 +20,10 @@ See [CreekService.org](https://www.creekservice.org) for info on Creek Service.
 | 6.4.+          | 6.4            | Supported & tested                          |
 | 6.4+           | 6.9.4          | Supported & tested                          |
 | 7.+            | 7.6.1          | Supported & tested                          |
-| 8.+            | 8.0.2          | Supported & tested                          |
-| > 8.0.2        |                | Not currently tested. Should work...        |
+| 8.+            | 8.5            | Supported & tested                          |
+| > 8.5          |                | Not currently tested. Should work...        |
+
+// Todo: update Gradle matrix
 
 ## Usage
 
@@ -32,7 +34,7 @@ See the portal for instructions on how to add the plugin to your build.
 
 The JSON Schema plugin adds the following tasks to your project:
 
-### generateJsonSchema - `GenerateJsonSchema`[5]
+### generateJsonSchema - [GenerateJsonSchema][5]
 
 > ### NOTE
 > Details of how to annotate classes to control their schema can be found in the [Creek JSON Schema Generator docs][1].
@@ -44,8 +46,8 @@ The JSON Schema plugin adds the following tasks to your project:
 *Dependants:* `processResources`
 
 The `generateJsonSchema` task searches the class and module path for with [`@GeneratesSchema`][2] and write out
-JSON schemas for them in YAML. The generated schemas are added to the `main` resource set, meaning they will be included
-in any generated jar.
+JSON schemas for them in YAML. The generated schema output directory is added to the `main` source set, 
+as an additional resource directories, meaning the schema will be included in any generated jar.
 
 Types can be annotated both with [Jackson][3] and [JsonSchema][4] annotations, allowing control of the generated schema.
 
@@ -70,6 +72,25 @@ For example, the following limits the class & module path scanning to only two m
     --type-scanning-allowed-module=acme.finance.momdel \
     --type-scanning-allowed-module=acme.sales.model
 ```
+
+### generateTestJsonSchema - [GenerateJsonSchema][5]
+
+> ### NOTE
+> Details of how to annotate classes to control their schema can be found in the [Creek JSON Schema Generator docs][1].
+
+> ### NOTE
+> Restricting class & module path scanning by setting allowed modules and allowed packages can increase the speed of your build.
+
+*Dependencies:* `compileTestJava`, `compileTestKotlin`, `compileTestGroovy` if they exist.
+*Dependants:* `processTestResources`
+
+The `generateTestJsonSchema` works the same as [generateJsonSchema](#generatejsonschema---generatejsonschema5), only
+for test code. The generated schema output directory is added to the `test` source set,
+as an additional resource directories, meaning the schema will be available during unit testing.
+
+**NOTE**: due to a [bug](https://github.com/java9-modularity/gradle-modules-plugin/issues/227) in the `org.javamodularity.moduleplugin` Gradle plugin, 
+generated resources are NOT patched in to the module during unit testing. 
+This should be fixed once https://github.com/java9-modularity/gradle-modules-plugin/pull/228 is merged and released.
 
 ### clean*TaskName* - `Delete`
 
@@ -186,6 +207,8 @@ creek.schema.json {
 }
 ```
 
+// Todo: discuyss module plugin and $moduleName
+
 ## Speeding up class scanning
 
 The [generator][1] scans the class and module paths of the JVM to find:
@@ -270,22 +293,30 @@ creek.schema.json {
 ## JSON Schema Generation
 
 The `generateJsonSchema` task generates YAML files containing the JSON schema of each `@GeneratesSchema` annotated type
-it encounters. By default, these are written to `$buildDir/generated/resources/schema/schema/json`, with
-`$buildDir/generated/resources/schema` being added as a resource root. This means the schema files generated will 
+it encounters. By default, these are written to `$buildDir/generated/resources/schema/main/schema/json`, with
+`$buildDir/generated/resources/schema/main` being added as a resource root. This means the schema files generated will 
 be included in the jar under a `schema/json` directory.
+
+The `generateTestJsonSchema` task outputs to the `$buildDir/generated/resources/schema/test/schema/json`, with
+`$buildDir/generated/resources/schema/test` being added as a resource root.
 
 ### Changing schema file location
 
 The location where schema files are written can be changed by changing either:
 
-* `creek.schema.json.schemaResourceRoot`: the resource root for schema, defaulting to `$buildDir/generated/resources/schema`, or
-* `creek.schema.json.outputDirectoryName`: the name of the subdirectory under `creek.schema.json.schemaResourceRoot` where schemas will be written,
-   and defining the relative path to the schema files within the resulting jar file.
+* `creek.schema.json.schemaResourceRoot`: the resource root for schema, defaulting to `$buildDir/generated/resources/schema/main`, or
+* `creek.schema.json.testSchemaResourceRoot`: the resource root for test schema, defaulting to `$buildDir/generated/resources/schema/test`, or
+* `creek.schema.json.outputDirectoryName`: the name of the subdirectory under `creek.schema.json.schemaResourceRoot` and
+  `creek.schema.json.testSchemaResourceRoot` where schemas will be written, 
+  and defining the relative path to the schema files within the resulting jar file.
+  This defaults to not being set, which causes the plugin to outputting schemas under a package directory structure.
+  If this property is set, schemas will be generated into the specified flat directory, where the filename matches that full class name. 
 
 ##### Groovy: Customising schema file output location
 ```groovy
 creek.schema.json {
   schemaResourceRoot = file("$buildDir/custom/build/path")
+  testSchemaResourceRoot = file("$buildDir/custom/build/path/for/test/schema")
   outputDirectoryName = "custom/path/within/jar"
 }
 ```
@@ -294,14 +325,42 @@ creek.schema.json {
 ```kotlin
 creek.schema.json {
     schemaResourceRoot.set(file("$buildDir/custom/build/path"))
+    testSchemaResourceRoot.set(file("$buildDir/custom/build/path/for/test/schema"))
     outputDirectoryName.set("custom/path/within/jar")
+}
+```
+
+### Resources in Java Modules
+
+Java 9 introduced the JPMS which, by default, encapsulates classes _and resources_.
+Resources, for example generated schema files, that are not in the root of jar, 
+are encapsulated by default, i.e. not accessible from outside the module, 
+unless the module definition explicitly `opens` the package the resource is in.
+
+Additionally, modules require each module to expose _unique_ packages.
+
+With default configuration this plugin will generate schemas under a resource root using the same directory structure as the source types,
+i.e. the schema file will be in the same package as the type it was built from in the jar file.
+
+If you wish the generated schema resources to be accessible from other modules, then the module definition must
+include an `opens` statement for the package containing the source types.
+
+For example, given types that generate schemas in an `acme.finance.model` package, ensure:
+
+```java
+module acme.model {
+    // Export the package types to everyone, i.e. the code:
+    exports acme.finance.model;
+
+    // Open the package resources to everyone, i.e. the schema files:
+    opens acme.finance.model;
 }
 ```
 
 ## JVM Language support
 
 Currently, the plugin automatically configures tasks to work with the standard Java, Groovy and Kotlin plugins. 
-Schema generation tasks are configured to read the output of `compileJava`, `compileGroovy` and `compileKotlin`
+Schema generation tasks are configured to read the output of `compile[Test]Java`, `compile[Test]Groovy` and `compile[Test]Kotlin`
 tasks if they are present in the project.
 
 Support for other JVM languages may be added later, or you may be able to configure your own instance of `GenerateJsonSchema`

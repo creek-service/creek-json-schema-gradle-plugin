@@ -22,7 +22,8 @@ plugins {
 creek {
     schema {
         json {
-            schemaResourceRoot.set(file("$buildDir/custom/path"))
+            schemaResourceRoot.set(file("$buildDir/custom/path/main"))
+            testSchemaResourceRoot.set(file("$buildDir/custom/path/test"))
             outputDirectoryName.set("bob")
             extraArguments("--echo-only")
 

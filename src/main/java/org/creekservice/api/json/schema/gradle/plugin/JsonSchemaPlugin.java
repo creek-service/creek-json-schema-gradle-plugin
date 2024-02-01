@@ -18,18 +18,17 @@ package org.creekservice.api.json.schema.gradle.plugin;
 
 import static org.creekservice.api.json.schema.gradle.plugin.GeneratorVersion.defaultGeneratorVersion;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.creekservice.api.json.schema.gradle.plugin.task.GenerateJsonSchema;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaPlugin;
@@ -54,14 +53,17 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
     /** Generate schema task name. */
     public static final String GENERATE_SCHEMA_TASK_NAME = "generateJsonSchema";
 
+    /** Generate test schema task name. */
+    public static final String GENERATE_TEST_SCHEMA_TASK_NAME = "generateTestJsonSchema";
+
     /** Standard Creek group name. */
     public static final String GROUP_NAME = "creek";
 
     /** Default resource root */
-    public static final String DEFAULT_RESOURCE_ROOT = "generated/resources/schema";
+    public static final String DEFAULT_RESOURCE_ROOT = "generated/resources/schema/main";
 
-    /** Default output folder under the resource root. */
-    public static final String DEFAULT_OUTPUT_FOLDER = "schema/json";
+    /** Default test resource root */
+    public static final String DEFAULT_TEST_RESOURCE_ROOT = "generated/resources/schema/test";
 
     /** Artifact group for generator */
     public static final String GENERATOR_DEP_GROUP_NAME = "org.creekservice";
@@ -74,12 +76,12 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
-        project.getPluginManager().apply(BasePlugin.class);
+        project.getPluginManager().apply(JavaPlugin.class);
 
         final JsonSchemaExtension extension = registerExtension(project);
         registerGenerateSchemaTask(project, extension);
+        registerGenerateTestSchemaTask(project, extension);
         registerJsonSchemaConfiguration(project);
-        project.afterEvaluate(this::afterEvaluate);
     }
 
     private JsonSchemaExtension registerExtension(final Project project) {
@@ -97,7 +99,11 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
         extension
                 .getSchemaResourceRoot()
                 .convention(project.getLayout().getBuildDirectory().dir(DEFAULT_RESOURCE_ROOT));
-        extension.getOutputDirectoryName().convention(DEFAULT_OUTPUT_FOLDER);
+        extension
+                .getTestSchemaResourceRoot()
+                .convention(
+                        project.getLayout().getBuildDirectory().dir(DEFAULT_TEST_RESOURCE_ROOT));
+        extension.getOutputDirectoryName().convention((String) null);
         extension.getExtraArguments().convention(List.of());
         return extension;
     }
@@ -107,6 +113,49 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
         final GenerateJsonSchema task =
                 project.getTasks().create(GENERATE_SCHEMA_TASK_NAME, GenerateJsonSchema.class);
 
+        task.getSchemaResourceRoot().set(extension.getSchemaResourceRoot());
+
+        configure(extension, task, SourceSet.MAIN_SOURCE_SET_NAME);
+
+        project.afterEvaluate(
+                proj ->
+                        afterEvaluate(
+                                proj,
+                                GENERATE_SCHEMA_TASK_NAME,
+                                JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME,
+                                List.of(
+                                        JavaPlugin.COMPILE_JAVA_TASK_NAME,
+                                        "compileKotlin",
+                                        "compileGroovy"),
+                                JavaPlugin.PROCESS_RESOURCES_TASK_NAME));
+    }
+
+    private void registerGenerateTestSchemaTask(
+            final Project project, final JsonSchemaExtension extension) {
+        final GenerateJsonSchema task =
+                project.getTasks().create(GENERATE_TEST_SCHEMA_TASK_NAME, GenerateJsonSchema.class);
+
+        task.getSchemaResourceRoot().set(extension.getTestSchemaResourceRoot());
+
+        configure(extension, task, SourceSet.TEST_SOURCE_SET_NAME);
+
+        project.afterEvaluate(
+                proj ->
+                        afterEvaluate(
+                                proj,
+                                GENERATE_TEST_SCHEMA_TASK_NAME,
+                                JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME,
+                                List.of(
+                                        JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME,
+                                        "compileTestKotlin",
+                                        "compileTestGroovy"),
+                                JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME));
+    }
+
+    private static void configure(
+            final JsonSchemaExtension extension,
+            final GenerateJsonSchema task,
+            final String sourceSetName) {
         task.setGroup(GROUP_NAME);
         task.getTypeScanningModuleWhiteList().set(extension.getTypeScanning().getModuleWhiteList());
         task.getTypeScanningPackageWhiteList()
@@ -115,9 +164,17 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
                 .set(extension.getSubtypeScanning().getModuleWhiteList());
         task.getSubtypeScanningPackageWhiteList()
                 .set(extension.getSubtypeScanning().getPackageWhiteListed());
-        task.getSchemaResourceRoot().set(extension.getSchemaResourceRoot());
         task.getOutputDirectoryName().set(extension.getOutputDirectoryName());
         task.getExtraArguments().set(extension.getExtraArguments());
+
+        final SourceSetContainer sourceSetContainer =
+                task.getProject().getExtensions().findByType(SourceSetContainer.class);
+        if (sourceSetContainer == null) {
+            throw new IllegalStateException("source set container not registered");
+        }
+
+        final SourceSet sourceSet = sourceSetContainer.getByName(sourceSetName);
+        sourceSet.getOutput().dir(Map.of("buildBy", task.getName()), task.getSchemaResourceRoot());
     }
 
     private void registerJsonSchemaConfiguration(final Project project) {
@@ -142,32 +199,23 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
                 .configureEach(task -> task.getGeneratorDeps().from(cfg));
     }
 
-    private void afterEvaluate(final Project project) {
+    private void afterEvaluate(
+            final Project project,
+            final String generateTaskName,
+            final String compileConfigName,
+            final List<String> compileTaskNames,
+            final String resourceTaskName) {
         final GenerateJsonSchema generateTask =
-                (GenerateJsonSchema) project.getTasks().getByName(GENERATE_SCHEMA_TASK_NAME);
-
-        final SourceSetContainer sourceSetContainer =
-                project.getExtensions().findByType(SourceSetContainer.class);
-        if (sourceSetContainer != null) {
-            final SourceSet mainSourceSet =
-                    sourceSetContainer.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-
-            mainSourceSet
-                    .getOutput()
-                    .dir(
-                            Map.of("buildBy", GENERATE_SCHEMA_TASK_NAME),
-                            generateTask.getSchemaResourceRoot());
-        }
+                (GenerateJsonSchema) project.getTasks().getByName(generateTaskName);
 
         final Configuration compileClassPathConfig =
-                project.getConfigurations()
-                        .findByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
+                project.getConfigurations().findByName(compileConfigName);
 
         if (compileClassPathConfig != null) {
             generateTask.getProjectDeps().from(compileClassPathConfig);
         }
 
-        final Set<Task> compileTasks = compileTasks(project);
+        final Set<Task> compileTasks = collectTasks(project, compileTaskNames);
 
         compileTasks.forEach(
                 compileTask -> {
@@ -177,12 +225,12 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
 
         generateTask.onlyIf(t -> compileTasks.stream().anyMatch(Task::getDidWork));
 
-        project.getTasksByName(JavaPlugin.PROCESS_RESOURCES_TASK_NAME, false)
+        project.getTasksByName(resourceTaskName, false)
                 .forEach(processTask -> processTask.dependsOn(generateTask));
     }
 
-    private Set<Task> compileTasks(final Project project) {
-        return Stream.of(JavaPlugin.COMPILE_JAVA_TASK_NAME, "compileKotlin", "compileGroovy")
+    private Set<Task> collectTasks(final Project project, final Collection<String> taskNames) {
+        return taskNames.stream()
                 .map(taskName -> project.getTasksByName(taskName, false))
                 .flatMap(Set::stream)
                 .collect(Collectors.toUnmodifiableSet());
@@ -200,6 +248,7 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
     }
 
     /** Simple extendable `creek` extension */
+    @SuppressWarnings("NullableProblems")
     public abstract static class CreekSpec implements ExtensionAware {
 
         @Override
@@ -207,6 +256,7 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
     }
 
     /** Simple extendable `schema` extension */
+    @SuppressWarnings("NullableProblems")
     public abstract static class SchemaSpec implements ExtensionAware {
 
         @Override

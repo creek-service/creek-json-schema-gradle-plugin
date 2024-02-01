@@ -124,15 +124,32 @@ public abstract class JsonSchemaExtension implements ExtensionAware {
     public abstract DirectoryProperty getSchemaResourceRoot();
 
     /**
-     * Optional name of the directory under the {@link #getSchemaResourceRoot() resource root} where
-     * the schema will be written.
+     * Optional resource root where generated test schemas should be stored
      *
-     * <p>This corresponds to the directory under which schema files will be located within the
-     * compiled jar file.
+     * <p>Default: {@code $buildDir/generated/test-resources/schema}
      *
-     * <p>Default: {@code schema/json}
+     * @return the test resource root property.
+     */
+    public abstract DirectoryProperty getTestSchemaResourceRoot();
+
+    /**
+     * Optionally, provide a specific directory to generate schemas into.
      *
-     * @return output directory name property.
+     * <p>This is a directory under the {@link #getSchemaResourceRoot() resource root} and {@link
+     * #getTestSchemaResourceRoot() test resource root}.
+     *
+     * <p>By default, schemas will be generated in a package directory structure under the resource
+     * root, and the schema filename will match the simple name of the type.
+     *
+     * <p>If this directory name is set, schemas will be generated into a single flat directly under
+     * the resource root, and the schema filename will match the types fully-qualified name.
+     *
+     * <p>For example, given a type {@code io.acme.financial.model.Account}, the default schema
+     * location is {@code resource-root/io/acme/financial/model/Account.yml}. If this output
+     * directory property is set, then the schema location is {@code
+     * resource-root/output-directory/io.acme.financial.model.Account.yml}.
+     *
+     * @return output directory property.
      */
     public abstract Property<String> getOutputDirectoryName();
 
