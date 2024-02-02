@@ -66,9 +66,9 @@ tasks.javadoc {
 tasks.jar {
     manifest {
         if (prependRootName) {
-            attributes("Automatic-Module-Name" to "${rootProject.name}-${project.name}")
+            attributes("Automatic-Module-Name" to "${rootProject.name}-${project.name}".replace("-", "."))
         } else {
-            attributes("Automatic-Module-Name" to project.name)
+            attributes("Automatic-Module-Name" to project.name.replace("-", "."))
         }
     }
 }
