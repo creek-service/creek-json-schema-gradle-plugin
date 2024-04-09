@@ -34,7 +34,7 @@ allprojects {
 }
 
 val creekVersion = "0.4.2-SNAPSHOT"
-val guavaVersion = "33.0.0-jre"               // https://mvnrepository.com/artifact/com.google.guava/guava
+val guavaVersion = "33.1.0-jre"               // https://mvnrepository.com/artifact/com.google.guava/guava
 val log4jVersion = "2.23.1"                 // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
 val junitVersion = "5.10.2"                  // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
 val junitPioneerVersion = "2.2.0"           // https://mvnrepository.com/artifact/org.junit-pioneer/junit-pioneer
