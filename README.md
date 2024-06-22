@@ -20,8 +20,8 @@ See [CreekService.org](https://www.creekservice.org) for info on Creek Service.
 | 6.4.+          | 6.4            | Supported & tested                          |
 | 6.4+           | 6.9.4          | Supported & tested                          |
 | 7.+            | 7.6.1          | Supported & tested                          |
-| 8.+            | 8.5            | Supported & tested                          |
-| > 8.5          |                | Not currently tested. Should work...        |
+| 8.+            | 8.8            | Supported & tested                          |
+| > 8.8          |                | Not currently tested. Should work...        |
 
 // Todo: update Gradle matrix
 
