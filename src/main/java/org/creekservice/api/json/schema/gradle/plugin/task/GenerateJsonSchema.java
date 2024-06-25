@@ -255,14 +255,12 @@ public abstract class GenerateJsonSchema extends DefaultTask {
         final List<String> arguments = arguments();
         final List<String> jvmArgs = jvmArgs();
 
-        if (getLogger().isInfoEnabled()) {
-            getLogger().info("Executing JSON schema generator with:");
-            getLogger().info("useModulePath: {}", useModulePath);
-            getLogger().info("arguments: {}", arguments);
-            getLogger().info("jvmArgs: {}", jvmArgs);
-            getLogger().info("classpath:");
-            classPath.forEach(f -> getLogger().info(f.getAbsolutePath()));
-        }
+        getLogger().info("Executing JSON schema generator with:");
+        getLogger().info("useModulePath: {}", useModulePath);
+        getLogger().info("arguments: {}", arguments);
+        getLogger().info("jvmArgs: {}", jvmArgs);
+        getLogger().info("classpath:");
+        classPath.forEach(f -> getLogger().info(f.getAbsolutePath()));
 
         getProject()
                 .javaexec(
