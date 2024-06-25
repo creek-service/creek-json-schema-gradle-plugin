@@ -122,7 +122,7 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
                         afterEvaluate(
                                 proj,
                                 GENERATE_SCHEMA_TASK_NAME,
-                                JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME,
+                                JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME,
                                 List.of(
                                         JavaPlugin.COMPILE_JAVA_TASK_NAME,
                                         "compileKotlin",
@@ -144,7 +144,7 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
                         afterEvaluate(
                                 proj,
                                 GENERATE_TEST_SCHEMA_TASK_NAME,
-                                JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME,
+                                JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME,
                                 List.of(
                                         JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME,
                                         "compileTestKotlin",

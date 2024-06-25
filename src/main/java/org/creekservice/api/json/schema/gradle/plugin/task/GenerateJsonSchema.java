@@ -251,6 +251,17 @@ public abstract class GenerateJsonSchema extends DefaultTask {
     public void run() {
         checkDependenciesIncludesRunner();
 
+        final boolean useModulePath = useModulePath();
+        final List<String> arguments = arguments();
+        final List<String> jvmArgs = jvmArgs();
+
+        getLogger().info("Executing JSON schema generator with:");
+        getLogger().info("useModulePath: {}", useModulePath);
+        getLogger().info("arguments: {}", arguments);
+        getLogger().info("jvmArgs: {}", jvmArgs);
+        getLogger().info("classpath:");
+        classPath.forEach(f -> getLogger().info(f.getAbsolutePath()));
+
         getProject()
                 .javaexec(
                         spec -> {
@@ -258,10 +269,10 @@ public abstract class GenerateJsonSchema extends DefaultTask {
                                     .set(
                                             "org.creekservice.api.json.schema.generator.JsonSchemaGenerator");
                             spec.getMainModule().set("creek.json.schema.generator");
-                            spec.getModularity().getInferModulePath().set(useModulePath());
+                            spec.getModularity().getInferModulePath().set(useModulePath);
                             spec.setClasspath(classPath);
-                            spec.setArgs(arguments());
-                            spec.jvmArgs(jvmArgs());
+                            spec.setArgs(arguments);
+                            spec.jvmArgs(jvmArgs);
                         });
     }
 
