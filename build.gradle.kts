@@ -38,7 +38,7 @@ val guavaVersion = "33.3.1-jre"               // https://mvnrepository.com/artif
 val log4jVersion = "2.23.1"                 // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
 val junitVersion = "5.11.1"                  // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
 val junitPioneerVersion = "2.2.0"           // https://mvnrepository.com/artifact/org.junit-pioneer/junit-pioneer
-val mockitoVersion = "5.13.0"                // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
+val mockitoVersion = "5.14.1"                // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
 
 dependencies {
     // Avoid non-test dependencies in plugins.
