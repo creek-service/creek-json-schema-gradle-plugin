@@ -22,7 +22,7 @@ plugins {
     `creek-plugin-publishing-convention`
     `creek-sonatype-publishing-convention`
     id("com.gradle.plugin-publish")
-    id("pl.allegro.tech.build.axion-release") version "1.18.10" // https://plugins.gradle.org/plugin/pl.allegro.tech.build.axion-release
+    id("pl.allegro.tech.build.axion-release") version "1.18.14" // https://plugins.gradle.org/plugin/pl.allegro.tech.build.axion-release
 }
 
 project.version = scmVersion.version
@@ -36,9 +36,9 @@ allprojects {
 val creekVersion = "0.4.2-SNAPSHOT"
 val guavaVersion = "33.3.1-jre"               // https://mvnrepository.com/artifact/com.google.guava/guava
 val log4jVersion = "2.24.1"                 // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
-val junitVersion = "5.11.1"                  // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
-val junitPioneerVersion = "2.2.0"           // https://mvnrepository.com/artifact/org.junit-pioneer/junit-pioneer
-val mockitoVersion = "5.14.1"                // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
+val junitVersion = "5.11.3"                  // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
+val junitPioneerVersion = "2.3.0"           // https://mvnrepository.com/artifact/org.junit-pioneer/junit-pioneer
+val mockitoVersion = "5.14.2"                // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
 
 dependencies {
     // Avoid non-test dependencies in plugins.
