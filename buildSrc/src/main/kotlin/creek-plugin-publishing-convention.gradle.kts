@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Creek Contributors (https://github.com/creek-service)
+ * Copyright 2022-2025 Creek Contributors (https://github.com/creek-service)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,10 @@
 /**
  * Configuration for Creek Gradle plugin publishing.
  *
- * <p>Version: 1.5
+ * <p>Versions:
+ *  - 1.6: Correct automatic module name
  *  - 1.5: Switch to using `gradlePlugin`, as required by Gradle 8.0
- *  - 1.4: Fix website URL to avoid redirect
+ *  - 1.4: Fix website URL to avoid redirect 
  *  - 1.3: Switch to setting 'system' from issue-management
  *
  * <p>Apply this plugin to any module publishing a Gradle plugin.
