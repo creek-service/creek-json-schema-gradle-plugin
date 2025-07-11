@@ -70,18 +70,18 @@ gradlePlugin {
 }
 
 tasks.register("writeVersionFile") {
-    val outputDir = file("$buildDir/generated/resources/version")
-    val versionFile = file("$outputDir/creek-json-schema-generator.version")
+    val outputDir = layout.buildDirectory.dir("generated/resources/version")
+    val versionFile = outputDir.map { dir -> file("$dir/creek-system-test-executor.version") }
     sourceSets.main.get().output.dir(mapOf("buildBy" to "writeVersionFile"), outputDir)
 
     inputs.property("executorVersion", creekVersion)
     outputs.dir(outputDir).withPropertyName("outputDir")
 
     doLast {
-        outputDir.mkdirs()
+        outputDir.get().asFile.mkdirs()
 
         logger.info("Writing creek-system-test-executor version: $creekVersion to $versionFile")
-        versionFile.writeText(creekVersion)
+        versionFile.get().writeText(creekVersion)
     }
 }
 
