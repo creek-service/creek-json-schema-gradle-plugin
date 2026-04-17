@@ -520,7 +520,7 @@ class GenerateJsonSchemaTest {
 
     private static List<Path> schemaFiles(final Path expectedSchemaDir) {
         try (Stream<Path> s = TestPaths.listDirectoryRecursive(expectedSchemaDir)) {
-            return s.filter(Files::isRegularFile).sorted().collect(Collectors.toUnmodifiableList());
+            return s.filter(Files::isRegularFile).sorted().toList();
         }
     }
 
@@ -538,7 +538,7 @@ class GenerateJsonSchemaTest {
     private static ArgumentSets flavoursAndVersions() {
         final Collection<?> flavours = List.of("kotlin", "groovy");
         // Note: update root README.md when updating this test dimension:
-        final Collection<?> gradleVersions = List.of("6.4", "6.9.4", "7.6.1", "8.8");
+        final Collection<?> gradleVersions = List.of("7.2", "7.6.6", "8.0", "8.14.4");
         return ArgumentSets.argumentsForFirstParameter(flavours)
                 .argumentsForNextParameter(gradleVersions);
     }
