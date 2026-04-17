@@ -520,7 +520,7 @@ class GenerateJsonSchemaTest {
 
     private static List<Path> schemaFiles(final Path expectedSchemaDir) {
         try (Stream<Path> s = TestPaths.listDirectoryRecursive(expectedSchemaDir)) {
-            return s.filter(Files::isRegularFile).sorted().collect(Collectors.toUnmodifiableList());
+            return s.filter(Files::isRegularFile).sorted().toList();
         }
     }
 
