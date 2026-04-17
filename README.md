@@ -14,16 +14,12 @@ See [CreekService.org](https://www.creekservice.org) for info on Creek Service.
 
 -## Supported Gradle versions
 
-| Gradle Version | Tested version | Notes                                       |
-|----------------|----------------|---------------------------------------------|
-| < 6.4          |                | Not compatible due to API changes in Gradle |
-| 6.4.+          | 6.4            | Supported & tested                          |
-| 6.4+           | 6.9.4          | Supported & tested                          |
-| 7.+            | 7.6.1          | Supported & tested                          |
-| 8.+            | 8.8            | Supported & tested                          |
-| > 8.8          |                | Not currently tested. Should work...        |
-
-// Todo: update Gradle matrix
+| Gradle Version | Tested version | Notes                                |
+|----------------|----------------|--------------------------------------|
+| < 7.2          |                | Java 17 not supported by Gradle      |
+| 7.2.+          | 7.2 & 7.6.6    | Supported & tested                   |
+| 8.+            | 8.0 & 8.14.4   | Supported & tested                   |
+| > 8.14.4       |                | Not currently tested. Should work... |
 
 ## Usage
 
