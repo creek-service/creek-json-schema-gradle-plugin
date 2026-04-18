@@ -110,12 +110,14 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
 
     private void registerGenerateSchemaTask(
             final Project project, final JsonSchemaExtension extension) {
-        final GenerateJsonSchema task =
-                project.getTasks().create(GENERATE_SCHEMA_TASK_NAME, GenerateJsonSchema.class);
-
-        task.getSchemaResourceRoot().set(extension.getSchemaResourceRoot());
-
-        configure(extension, task, SourceSet.MAIN_SOURCE_SET_NAME);
+        project.getTasks()
+                .register(
+                        GENERATE_SCHEMA_TASK_NAME,
+                        GenerateJsonSchema.class,
+                        task -> {
+                            task.getSchemaResourceRoot().set(extension.getSchemaResourceRoot());
+                            configure(extension, task, SourceSet.MAIN_SOURCE_SET_NAME);
+                        });
 
         project.afterEvaluate(
                 proj ->
@@ -132,12 +134,14 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
 
     private void registerGenerateTestSchemaTask(
             final Project project, final JsonSchemaExtension extension) {
-        final GenerateJsonSchema task =
-                project.getTasks().create(GENERATE_TEST_SCHEMA_TASK_NAME, GenerateJsonSchema.class);
-
-        task.getSchemaResourceRoot().set(extension.getTestSchemaResourceRoot());
-
-        configure(extension, task, SourceSet.TEST_SOURCE_SET_NAME);
+        project.getTasks()
+                .register(
+                        GENERATE_TEST_SCHEMA_TASK_NAME,
+                        GenerateJsonSchema.class,
+                        task -> {
+                            task.getSchemaResourceRoot().set(extension.getTestSchemaResourceRoot());
+                            configure(extension, task, SourceSet.TEST_SOURCE_SET_NAME);
+                        });
 
         project.afterEvaluate(
                 proj ->
@@ -179,7 +183,6 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
 
     private void registerJsonSchemaConfiguration(final Project project) {
         final Configuration cfg = project.getConfigurations().create(GENERATOR_CONFIGURATION_NAME);
-        cfg.setVisible(false);
         cfg.setTransitive(true);
         cfg.setCanBeConsumed(false);
         cfg.setCanBeResolved(true);

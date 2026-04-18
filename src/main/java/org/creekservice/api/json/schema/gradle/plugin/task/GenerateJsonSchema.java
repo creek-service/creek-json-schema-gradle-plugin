@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.creekservice.api.json.schema.gradle.plugin.JsonSchemaPlugin;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
@@ -33,14 +34,18 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.process.ExecOperations;
+import org.gradle.work.DisableCachingByDefault;
 
 /** Task for generating JSON schemas from code */
+@DisableCachingByDefault(because = "Generator and project dependencies are not tracked as inputs")
 public abstract class GenerateJsonSchema extends DefaultTask {
 
     final ConfigurableFileCollection classPath = getProject().getObjects().fileCollection();
@@ -232,6 +237,7 @@ public abstract class GenerateJsonSchema extends DefaultTask {
      *     task.
      */
     @InputFiles
+    @Classpath
     public abstract ConfigurableFileCollection getClassFiles();
 
     /**
@@ -245,6 +251,12 @@ public abstract class GenerateJsonSchema extends DefaultTask {
      */
     @Internal
     public abstract ConfigurableFileCollection getProjectDeps();
+
+    /**
+     * @return exec operations for running external processes.
+     */
+    @Inject
+    protected abstract ExecOperations getExecOperations();
 
     /** The task action. */
     @TaskAction
@@ -262,7 +274,7 @@ public abstract class GenerateJsonSchema extends DefaultTask {
         getLogger().info("classpath:");
         classPath.forEach(f -> getLogger().info(f.getAbsolutePath()));
 
-        getProject()
+        getExecOperations()
                 .javaexec(
                         spec -> {
                             spec.getMainClass()
