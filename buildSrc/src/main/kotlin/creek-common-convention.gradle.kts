@@ -91,11 +91,13 @@ tasks.test {
         showStackTraces = true
     }
 
-    // Workaround for Gradle 8.8 + Jacoco on Windows: after the test JVM exits,
-    // Windows briefly holds the Jacoco .exec file open, causing Gradle to fail
-    // when hashing the file for incremental build state tracking.
-    // See: https://github.com/gradle/gradle/issues/26039
-    doNotTrackState("Workaround for Jacoco output file locking on Windows")
+    if (org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_WINDOWS)) {
+        // Workaround for Gradle 8.8 + Jacoco on Windows: after the test JVM exits,
+        // Windows briefly holds the Jacoco .exec file open, causing Gradle to fail
+        // when hashing the file for incremental build state tracking.
+        // See: https://github.com/gradle/gradle/issues/26039
+        doNotTrackState("Workaround for Jacoco output file locking on Windows")
+    }
 }
 
 spotless {
