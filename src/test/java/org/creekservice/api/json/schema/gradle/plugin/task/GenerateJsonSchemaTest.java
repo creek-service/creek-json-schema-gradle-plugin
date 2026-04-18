@@ -135,7 +135,8 @@ class GenerateJsonSchemaTest {
                 result.getOutput(),
                 matchesPattern(
                         Pattern.compile(
-                                ".*--class-path=.*build/classes/java/main[;:].*", Pattern.DOTALL)));
+                                ".*--class-path=.*build[/\\\\]classes[/\\\\]java[/\\\\]main[;:].*",
+                                Pattern.DOTALL)));
         assertThat(
                 "Should be running from the class-path",
                 result.getOutput(),
