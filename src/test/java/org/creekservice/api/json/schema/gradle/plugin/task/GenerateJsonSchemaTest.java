@@ -135,7 +135,8 @@ class GenerateJsonSchemaTest {
                 result.getOutput(),
                 matchesPattern(
                         Pattern.compile(
-                                ".*--class-path=.*build/classes/java/main:.*", Pattern.DOTALL)));
+                                ".*--class-path=.*build[/\\\\]classes[/\\\\]java[/\\\\]main[;:].*",
+                                Pattern.DOTALL)));
         assertThat(
                 "Should be running from the class-path",
                 result.getOutput(),
@@ -482,11 +483,11 @@ class GenerateJsonSchemaTest {
         }
 
         if (!options.isEmpty()) {
-            // Use forward slashes to avoid backslashes being treated as escape chars in .properties:
+            // Use forward slashes to avoid backslashes being treated as escape chars in
+            // .properties:
             final String jvmArgs = String.join(" ", options).replace("\\", "/");
             TestPaths.write(
-                    projectDir.resolve("gradle.properties"),
-                    "org.gradle.jvmargs=" + jvmArgs);
+                    projectDir.resolve("gradle.properties"), "org.gradle.jvmargs=" + jvmArgs);
         }
     }
 

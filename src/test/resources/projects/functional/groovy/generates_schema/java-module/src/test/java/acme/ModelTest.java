@@ -17,18 +17,16 @@
 package acme;
 
 import org.junit.jupiter.api.Test;
-import java.io.File;
 import java.net.URL;
-import java.nio.file.Path;
 
 class ModelTest {
 
     @Test
     void shouldLoadSchemaAsResource() {
-        final Path path = Path.of(File.separator, "acme", "Model.yml");
-        final URL resource = Model.class.getResource(path.toString());
+        final String resourcePath = "/acme/Model.yml";
+        final URL resource = Model.class.getResource(resourcePath);
         if (resource == null) {
-            throw new AssertionError("resource not found: " + path);
+            throw new AssertionError("resource not found: " + resourcePath);
         }
     }
 }
