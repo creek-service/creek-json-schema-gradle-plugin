@@ -482,11 +482,11 @@ class GenerateJsonSchemaTest {
         }
 
         if (!options.isEmpty()) {
-            // Use forward slashes to avoid backslashes being treated as escape chars in .properties:
+            // Use forward slashes to avoid backslashes being treated as escape chars in
+            // .properties:
             final String jvmArgs = String.join(" ", options).replace("\\", "/");
             TestPaths.write(
-                    projectDir.resolve("gradle.properties"),
-                    "org.gradle.jvmargs=" + jvmArgs);
+                    projectDir.resolve("gradle.properties"), "org.gradle.jvmargs=" + jvmArgs);
         }
     }
 
