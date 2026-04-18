@@ -23,10 +23,10 @@ class ModelTest {
 
     @Test
     void shouldLoadSchemaAsResource() {
-        final URL resource = ModelTest.class.getResource("/schema/json/acme.Model.yml");
-        System.out.println("/schema/json/acme.Model.yml -> " + resource);
+        final String resourcePath = "/schema/json/acme.Model.yml";
+        final URL resource = ModelTest.class.getResource(resourcePath);
         if (resource == null) {
-            throw new AssertionError("resource not found: /schema/json/acme.Model.yml");
+            throw new AssertionError("resource not found: " + resourcePath);
         }
     }
 }
