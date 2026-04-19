@@ -1,6 +1,6 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Gradle Plugin Portal](https://img.shields.io/maven-central/v/org.creekservice/creek-json-schema-gradle-plugin.svg?label=Gradle%20Plugin%20Portal)](https://plugins.gradle.org/plugin/org.creekservice.schema.json)
-[![Coverage Status](https://coveralls.io/repos/github/creek-service/creek-json-schema-gradle-plugin/badge.svg?branch=main)](https://coveralls.io/github/creek-service/creek-json-schema-gradle-plugin?branch=main)
+[![codecov](https://codecov.io/gh/creek-service/creek-json-schema-gradle-plugin/branch/main/graph/badge.svg)](https://codecov.io/gh/creek-service/creek-json-schema-gradle-plugin)
 [![build](https://github.com/creek-service/creek-json-schema-gradle-plugin/actions/workflows/build.yml/badge.svg)](https://github.com/creek-service/creek-json-schema-gradle-plugin/actions/workflows/build.yml)
 [![CodeQL](https://github.com/creek-service/creek-json-schema-gradle-plugin/actions/workflows/codeql.yml/badge.svg)](https://github.com/creek-service/creek-json-schema-gradle-plugin/actions/workflows/codeql.yml)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/creek-service/creek-json-schema-gradle-plugin/badge)](https://api.securityscorecards.dev/projects/github.com/creek-service/creek-json-schema-gradle-plugin)
