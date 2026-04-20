@@ -40,10 +40,10 @@ allprojects {
 
 val creekVersion = project.version
 val guavaVersion = "33.5.0-jre"               // https://mvnrepository.com/artifact/com.google.guava/guava
-val log4jVersion = "2.25.3"                 // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
+val log4jVersion = "2.25.4"                 // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
 val junitVersion = "6.0.3"                  // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
 val junitPioneerVersion = "2.3.0"           // https://mvnrepository.com/artifact/org.junit-pioneer/junit-pioneer
-val mockitoVersion = "5.21.0"                // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
+val mockitoVersion = "5.23.0"                // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
 
 dependencies {
     // Avoid non-test dependencies in plugins.

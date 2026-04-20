@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.creekservice.api.json.schema.gradle.plugin.JsonSchemaPlugin;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
@@ -39,15 +40,22 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.process.ExecOperations;
 
 /** Task for generating JSON schemas from code */
 public abstract class GenerateJsonSchema extends DefaultTask {
 
+    private final ExecOperations execOps;
     final ConfigurableFileCollection classPath = getProject().getObjects().fileCollection();
 
-    /** Constructor */
-    public GenerateJsonSchema() {
-
+    /**
+     * Constructor
+     *
+     * @param execOps Gradle exec operations service for executing JVM processes.
+     */
+    @Inject
+    public GenerateJsonSchema(final ExecOperations execOps) {
+        this.execOps = execOps;
         classPath.from((Callable<Object>) this::getClassFiles);
         classPath.from((Callable<Object>) this::getGeneratorDeps);
         classPath.from((Callable<Object>) this::getProjectDeps);
@@ -262,18 +270,16 @@ public abstract class GenerateJsonSchema extends DefaultTask {
         getLogger().info("classpath:");
         classPath.forEach(f -> getLogger().info(f.getAbsolutePath()));
 
-        getProject()
-                .javaexec(
-                        spec -> {
-                            spec.getMainClass()
-                                    .set(
-                                            "org.creekservice.api.json.schema.generator.JsonSchemaGenerator");
-                            spec.getMainModule().set("creek.json.schema.generator");
-                            spec.getModularity().getInferModulePath().set(useModulePath);
-                            spec.setClasspath(classPath);
-                            spec.setArgs(arguments);
-                            spec.jvmArgs(jvmArgs);
-                        });
+        execOps.javaexec(
+                spec -> {
+                    spec.getMainClass()
+                            .set("org.creekservice.api.json.schema.generator.JsonSchemaGenerator");
+                    spec.getMainModule().set("creek.json.schema.generator");
+                    spec.getModularity().getInferModulePath().set(useModulePath);
+                    spec.setClasspath(classPath);
+                    spec.setArgs(arguments);
+                    spec.jvmArgs(jvmArgs);
+                });
     }
 
     private boolean useModulePath() {
