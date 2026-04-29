@@ -371,3 +371,4 @@ to work with your chosen language. (Consider adding details to [Issue 6][8] if y
 [7]: https://github.com/creek-service/creek-json-schema/tree/main/generator
 [8]: https://github.com/creek-service/creek-json-schema-gradle-plugin/issues/6
 [pluginPortal]: https://plugins.gradle.org/plugin/org.creekservice.schema.json
+
