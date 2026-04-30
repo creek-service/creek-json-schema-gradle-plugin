@@ -34,15 +34,17 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.process.ExecOperations;
 
 /** Task for generating JSON schemas from code */
+@UntrackedTask(because = "Runs an external schema generator process whose output is always written")
 public abstract class GenerateJsonSchema extends DefaultTask {
 
     private final ExecOperations execOps;
@@ -239,7 +241,7 @@ public abstract class GenerateJsonSchema extends DefaultTask {
      * @return the class files to scan, e.g. the output of the compileJava task or other compile
      *     task.
      */
-    @InputFiles
+    @Classpath
     public abstract ConfigurableFileCollection getClassFiles();
 
     /**
