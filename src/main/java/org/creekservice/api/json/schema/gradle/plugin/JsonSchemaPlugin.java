@@ -34,6 +34,7 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskProvider;
 
 /** Plugin for generating JSON schemas from code */
 public final class JsonSchemaPlugin implements Plugin<Project> {
@@ -110,12 +111,18 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
 
     private void registerGenerateSchemaTask(
             final Project project, final JsonSchemaExtension extension) {
-        final GenerateJsonSchema task =
-                project.getTasks().create(GENERATE_SCHEMA_TASK_NAME, GenerateJsonSchema.class);
+        final TaskProvider<GenerateJsonSchema> taskProvider =
+                project.getTasks()
+                        .register(
+                                GENERATE_SCHEMA_TASK_NAME,
+                                GenerateJsonSchema.class,
+                                task -> {
+                                    task.getSchemaResourceRoot()
+                                            .set(extension.getSchemaResourceRoot());
+                                    configure(extension, task);
+                                });
 
-        task.getSchemaResourceRoot().set(extension.getSchemaResourceRoot());
-
-        configure(extension, task, SourceSet.MAIN_SOURCE_SET_NAME);
+        configureSourceSetOutput(project, taskProvider, SourceSet.MAIN_SOURCE_SET_NAME);
 
         project.afterEvaluate(
                 proj ->
@@ -132,12 +139,18 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
 
     private void registerGenerateTestSchemaTask(
             final Project project, final JsonSchemaExtension extension) {
-        final GenerateJsonSchema task =
-                project.getTasks().create(GENERATE_TEST_SCHEMA_TASK_NAME, GenerateJsonSchema.class);
+        final TaskProvider<GenerateJsonSchema> taskProvider =
+                project.getTasks()
+                        .register(
+                                GENERATE_TEST_SCHEMA_TASK_NAME,
+                                GenerateJsonSchema.class,
+                                task -> {
+                                    task.getSchemaResourceRoot()
+                                            .set(extension.getTestSchemaResourceRoot());
+                                    configure(extension, task);
+                                });
 
-        task.getSchemaResourceRoot().set(extension.getTestSchemaResourceRoot());
-
-        configure(extension, task, SourceSet.TEST_SOURCE_SET_NAME);
+        configureSourceSetOutput(project, taskProvider, SourceSet.TEST_SOURCE_SET_NAME);
 
         project.afterEvaluate(
                 proj ->
@@ -154,8 +167,7 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
 
     private static void configure(
             final JsonSchemaExtension extension,
-            final GenerateJsonSchema task,
-            final String sourceSetName) {
+            final GenerateJsonSchema task) {
         task.setGroup(GROUP_NAME);
         task.getTypeScanningModuleWhiteList().set(extension.getTypeScanning().getModuleWhiteList());
         task.getTypeScanningPackageWhiteList()
@@ -166,20 +178,28 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
                 .set(extension.getSubtypeScanning().getPackageWhiteListed());
         task.getOutputDirectoryName().set(extension.getOutputDirectoryName());
         task.getExtraArguments().set(extension.getExtraArguments());
+    }
 
+    private static void configureSourceSetOutput(
+            final Project project,
+            final TaskProvider<GenerateJsonSchema> taskProvider,
+            final String sourceSetName) {
         final SourceSetContainer sourceSetContainer =
-                task.getProject().getExtensions().findByType(SourceSetContainer.class);
+                project.getExtensions().findByType(SourceSetContainer.class);
         if (sourceSetContainer == null) {
             throw new IllegalStateException("source set container not registered");
         }
 
         final SourceSet sourceSet = sourceSetContainer.getByName(sourceSetName);
-        sourceSet.getOutput().dir(Map.of("buildBy", task.getName()), task.getSchemaResourceRoot());
+        sourceSet
+                .getOutput()
+                .dir(
+                        Map.of("buildBy", taskProvider.getName()),
+                        taskProvider.flatMap(GenerateJsonSchema::getSchemaResourceRoot));
     }
 
     private void registerJsonSchemaConfiguration(final Project project) {
         final Configuration cfg = project.getConfigurations().create(GENERATOR_CONFIGURATION_NAME);
-        cfg.setVisible(false);
         cfg.setTransitive(true);
         cfg.setCanBeConsumed(false);
         cfg.setCanBeResolved(true);
