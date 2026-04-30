@@ -166,8 +166,7 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
     }
 
     private static void configure(
-            final JsonSchemaExtension extension,
-            final GenerateJsonSchema task) {
+            final JsonSchemaExtension extension, final GenerateJsonSchema task) {
         task.setGroup(GROUP_NAME);
         task.getTypeScanningModuleWhiteList().set(extension.getTypeScanning().getModuleWhiteList());
         task.getTypeScanningPackageWhiteList()
