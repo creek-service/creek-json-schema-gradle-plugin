@@ -247,7 +247,7 @@ creek.schema.json {
 ```groovy
 creek.schema.json {
     typeScanning {
-        packageWhiteList 'com.acme.finance', 'com.acme.sales.*'
+        packageWhiteList 'com.acme.finance', 'com.acme.**.sales.*'
     }
 }
 ```
@@ -256,10 +256,12 @@ creek.schema.json {
 ```kotlin
 creek.schema.json {
     typeScanning {
-        packageWhiteList("com.acme.finance", "com.acme.sales.*")
+        packageWhiteList("com.acme.finance", "com.acme.**.sales.*")
     }
 }
 ```
+
+Note: `*` matches any single package segments, while `**` matches any number of package segments, including none.
 
 ### Controlling which subtypes are included in schemas
 
@@ -271,7 +273,7 @@ to search under:
 creek.schema.json {
     subTypeScanning {
         moduleWhiteList("acme-finance", "acme-sales")
-        packageWhiteList 'com.acme.finance', 'com.acme.sales.*'
+        packageWhiteList 'com.acme.finance', 'com.acme.**.sales.*'
     }
 }
 ```
@@ -281,10 +283,12 @@ creek.schema.json {
 creek.schema.json {
     subTypeScanning {
         moduleWhiteList("acme-finance", "acme-sales")
-        packageWhiteList("com.acme.finance", "com.acme.sales.*")
+        packageWhiteList("com.acme.finance", "com.acme.**.sales.*")
     }
 }
 ```
+
+Note: `*` matches any single package segments, while `**` matches any number of package segments, including none.
 
 ## JSON Schema Generation
 
