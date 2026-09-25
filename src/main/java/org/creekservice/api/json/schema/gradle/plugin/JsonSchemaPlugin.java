@@ -134,7 +134,8 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
                                         JavaPlugin.COMPILE_JAVA_TASK_NAME,
                                         "compileKotlin",
                                         "compileGroovy"),
-                                JavaPlugin.PROCESS_RESOURCES_TASK_NAME));
+                                JavaPlugin.PROCESS_RESOURCES_TASK_NAME,
+                                SourceSet.MAIN_SOURCE_SET_NAME));
     }
 
     private void registerGenerateTestSchemaTask(
@@ -162,7 +163,8 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
                                         JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME,
                                         "compileTestKotlin",
                                         "compileTestGroovy"),
-                                JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME));
+                                JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME,
+                                SourceSet.TEST_SOURCE_SET_NAME));
     }
 
     private static void configure(
@@ -223,7 +225,8 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
             final String generateTaskName,
             final String compileConfigName,
             final List<String> compileTaskNames,
-            final String resourceTaskName) {
+            final String resourceTaskName,
+            final String sourceSetName) {
         final GenerateJsonSchema generateTask =
                 (GenerateJsonSchema) project.getTasks().getByName(generateTaskName);
 
@@ -242,7 +245,12 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
                     generateTask.getClassFiles().from(compileTask.getOutputs());
                 });
 
-        generateTask.onlyIf(t -> compileTasks.stream().anyMatch(Task::getDidWork));
+        final SourceSetContainer sourceSetContainer =
+                project.getExtensions().findByType(SourceSetContainer.class);
+        if (sourceSetContainer != null) {
+            final SourceSet sourceSet = sourceSetContainer.getByName(sourceSetName);
+            generateTask.onlyIf(t -> !sourceSet.getAllSource().isEmpty());
+        }
 
         project.getTasksByName(resourceTaskName, false)
                 .forEach(processTask -> processTask.dependsOn(generateTask));

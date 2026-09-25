@@ -23,6 +23,7 @@ import static org.creekservice.api.test.util.debug.RemoteDebug.remoteDebugArgume
 import static org.gradle.testkit.runner.TaskOutcome.FAILED;
 import static org.gradle.testkit.runner.TaskOutcome.SKIPPED;
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS;
+import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
@@ -92,7 +93,7 @@ class GenerateJsonSchemaTest {
 
     @CartesianTest
     @MethodFactory("flavoursAndVersions")
-    void shouldSkipIfCompileTasksDidNoWork(final String flavour, final String gradleVersion) {
+    void shouldSkipIfNoSourceFiles(final String flavour, final String gradleVersion) {
         // Given:
         givenProject(flavour + "/empty");
 
@@ -144,6 +145,13 @@ class GenerateJsonSchemaTest {
                         Pattern.compile(
                                 ".*^--class-path=[^\n\r]*creek-json-schema-generator.*",
                                 Pattern.MULTILINE | Pattern.DOTALL)));
+
+        // When: run again with no changes
+        final BuildResult secondResult =
+                executeTask(GENERATE_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
+
+        // Then: the task is up-to-date, i.e. it did not rerun unnecessarily
+        assertThat(secondResult.task(GENERATE_TASK_NAME).getOutcome(), is(UP_TO_DATE));
     }
 
     @CartesianTest
@@ -431,6 +439,51 @@ class GenerateJsonSchemaTest {
         assertThat(result.task(GENERATE_TEST_TASK_NAME).getOutcome(), is(SUCCESS));
         assertSchemas(actualSchemaDir, expectedSchemaDir);
         assertThat(result.task(TEST_TASK_NAME).getOutcome(), is(SUCCESS));
+    }
+
+    @CartesianTest
+    @MethodFactory("flavoursAndVersions")
+    void shouldRegenerateWhenOutputDirectoryDeleted(
+            final String flavour, final String gradleVersion) {
+        // Given:
+        givenProject(flavour + "/generates_schema/java");
+        final Path outputDir = projectDir.resolve("build/generated/resources/schema/main");
+        executeTask(GENERATE_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
+        assertThat("sanity check", Files.exists(outputDir), is(true));
+
+        TestPaths.delete(outputDir);
+        assertThat("sanity check", Files.exists(outputDir), is(false));
+
+        // When: rerun with no source changes
+        final BuildResult result =
+                executeTask(GENERATE_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
+
+        // Then:
+        assertThat(result.task(GENERATE_TASK_NAME).getOutcome(), is(SUCCESS));
+        assertThat(Files.exists(outputDir), is(true));
+        assertThat(Files.exists(outputDir.resolve("acme/Model.yml")), is(true));
+    }
+
+    @CartesianTest
+    @MethodFactory("flavoursAndVersions")
+    void shouldRegenerateTestSchemaWhenOutputDirectoryDeleted(
+            final String flavour, final String gradleVersion) {
+        // Given:
+        givenProject(flavour + "/generates_test_schema/java");
+        final Path outputDir = projectDir.resolve("build/generated/resources/schema/test");
+        executeTask(GENERATE_TEST_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
+        assertThat("sanity check", Files.exists(outputDir), is(true));
+
+        TestPaths.delete(outputDir);
+        assertThat("sanity check", Files.exists(outputDir), is(false));
+
+        // When: rerun with no source changes
+        final BuildResult result =
+                executeTask(GENERATE_TEST_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
+
+        // Then:
+        assertThat(result.task(GENERATE_TEST_TASK_NAME).getOutcome(), is(SUCCESS));
+        assertThat(Files.exists(outputDir), is(true));
     }
 
     @Test
