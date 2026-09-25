@@ -159,7 +159,7 @@ class GenerateJsonSchemaTest {
 
         // Then:
         assertThat(result.task(GENERATE_TASK_NAME).getOutcome(), is(SUCCESS));
-        assertThat(result.getOutput(), containsString("JsonSchemaGenerator: 0.2.0-SNAPSHOT"));
+        assertThat(result.getOutput(), containsString("JsonSchemaGenerator: 0.4.3"));
     }
 
     @CartesianTest
