@@ -23,6 +23,7 @@ import static org.creekservice.api.test.util.debug.RemoteDebug.remoteDebugArgume
 import static org.gradle.testkit.runner.TaskOutcome.FAILED;
 import static org.gradle.testkit.runner.TaskOutcome.SKIPPED;
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS;
+import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
@@ -92,7 +93,7 @@ class GenerateJsonSchemaTest {
 
     @CartesianTest
     @MethodFactory("flavoursAndVersions")
-    void shouldSkipIfCompileTasksDidNoWork(final String flavour, final String gradleVersion) {
+    void shouldSkipIfNoSourceFiles(final String flavour, final String gradleVersion) {
         // Given:
         givenProject(flavour + "/empty");
 
@@ -431,6 +432,100 @@ class GenerateJsonSchemaTest {
         assertThat(result.task(GENERATE_TEST_TASK_NAME).getOutcome(), is(SUCCESS));
         assertSchemas(actualSchemaDir, expectedSchemaDir);
         assertThat(result.task(TEST_TASK_NAME).getOutcome(), is(SUCCESS));
+    }
+
+    @CartesianTest
+    @MethodFactory("flavoursVersionsAndLanguage")
+    void shouldRegenerateWhenOutputDirectoryDeleted(
+            final String flavour, final String gradleVersion, final String language) {
+        assumeTrue(supported(gradleVersion, language));
+
+        // Given:
+        givenProject(flavour + "/generates_schema/" + language);
+        final Path schemaDir = projectDir.resolve("build/generated/resources/schema/main");
+
+        final BuildResult firstRun =
+                executeTask(GENERATE_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
+        assertThat(firstRun.task(GENERATE_TASK_NAME).getOutcome(), is(SUCCESS));
+        assertThat("Schemas should have been generated", Files.exists(schemaDir), is(true));
+        TestPaths.delete(schemaDir);
+
+        // When:
+        final BuildResult secondRun =
+                executeTask(GENERATE_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
+
+        // Then:
+        assertThat(secondRun.task(GENERATE_TASK_NAME).getOutcome(), is(SUCCESS));
+        assertThat(
+                "Schemas should have been regenerated", schemaFiles(schemaDir), is(not(empty())));
+    }
+
+    @CartesianTest
+    @MethodFactory("flavoursVersionsAndLanguage")
+    void shouldRegenerateTestSchemasWhenOutputDirectoryDeleted(
+            final String flavour, final String gradleVersion, final String language) {
+        assumeTrue(supported(gradleVersion, language));
+
+        // Given:
+        givenProject(flavour + "/generates_test_schema/" + language);
+        final Path schemaDir = projectDir.resolve("build/generated/resources/schema/test");
+
+        final BuildResult firstRun =
+                executeTask(GENERATE_TEST_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
+        assertThat(firstRun.task(GENERATE_TEST_TASK_NAME).getOutcome(), is(SUCCESS));
+        assertThat("Schemas should have been generated", Files.exists(schemaDir), is(true));
+        TestPaths.delete(schemaDir);
+
+        // When:
+        final BuildResult secondRun =
+                executeTask(GENERATE_TEST_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
+
+        // Then:
+        assertThat(secondRun.task(GENERATE_TEST_TASK_NAME).getOutcome(), is(SUCCESS));
+        assertThat(
+                "Schemas should have been regenerated", schemaFiles(schemaDir), is(not(empty())));
+    }
+
+    @CartesianTest
+    @MethodFactory("flavoursVersionsAndLanguage")
+    void shouldBeUpToDateIfNothingChanged(
+            final String flavour, final String gradleVersion, final String language) {
+        assumeTrue(supported(gradleVersion, language));
+
+        // Given:
+        givenProject(flavour + "/generates_schema/" + language);
+
+        final BuildResult firstRun =
+                executeTask(GENERATE_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
+        assertThat(firstRun.task(GENERATE_TASK_NAME).getOutcome(), is(SUCCESS));
+
+        // When:
+        final BuildResult secondRun =
+                executeTask(GENERATE_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
+
+        // Then:
+        assertThat(secondRun.task(GENERATE_TASK_NAME).getOutcome(), is(UP_TO_DATE));
+    }
+
+    @CartesianTest
+    @MethodFactory("flavoursVersionsAndLanguage")
+    void shouldBeUpToDateIfNothingChangedForTestSchemas(
+            final String flavour, final String gradleVersion, final String language) {
+        assumeTrue(supported(gradleVersion, language));
+
+        // Given:
+        givenProject(flavour + "/generates_test_schema/" + language);
+
+        final BuildResult firstRun =
+                executeTask(GENERATE_TEST_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
+        assertThat(firstRun.task(GENERATE_TEST_TASK_NAME).getOutcome(), is(SUCCESS));
+
+        // When:
+        final BuildResult secondRun =
+                executeTask(GENERATE_TEST_TASK_NAME, ExpectedOutcome.PASS, gradleVersion);
+
+        // Then:
+        assertThat(secondRun.task(GENERATE_TEST_TASK_NAME).getOutcome(), is(UP_TO_DATE));
     }
 
     @Test

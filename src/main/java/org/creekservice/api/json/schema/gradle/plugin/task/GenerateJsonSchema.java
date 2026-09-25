@@ -39,12 +39,17 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.process.ExecOperations;
+import org.gradle.work.DisableCachingByDefault;
 
 /** Task for generating JSON schemas from code */
-@UntrackedTask(because = "Runs an external schema generator process whose output is always written")
+@DisableCachingByDefault(
+        because =
+                "Runs an external schema generator process, whose output is not guaranteed to be"
+                        + " relocatable between machines. Up-to-date checking within a single build"
+                        + " tree is still enabled, so the task reruns when its inputs or declared"
+                        + " outputs change.")
 public abstract class GenerateJsonSchema extends DefaultTask {
 
     private final ExecOperations execOps;
@@ -245,13 +250,26 @@ public abstract class GenerateJsonSchema extends DefaultTask {
     public abstract ConfigurableFileCollection getClassFiles();
 
     /**
-     * @return dependencies of the system test runner.
+     * The schema generator itself, and its dependencies.
+     *
+     * <p>Tracked as a classpath input so that upgrading the generator correctly triggers a
+     * regeneration of the schemas.
+     *
+     * @return the generator and its dependencies.
      */
-    @Internal
+    @Classpath
     public abstract ConfigurableFileCollection getGeneratorDeps();
 
     /**
-     * @return dependencies the project needs to compile.
+     * The dependencies the project needs at runtime, which are on the generator's classpath so it
+     * can resolve the types it scans.
+     *
+     * <p>Deliberately not tracked: for the test schema task this is {@code testRuntimeClasspath},
+     * which includes this task's own {@link #getSchemaResourceRoot() output directory}. Tracking it
+     * would make the task depend on its own output, so it would never be up-to-date. The compiled
+     * classes the generator actually scans are tracked via {@link #getClassFiles()}.
+     *
+     * @return the project dependencies to put on the generator's classpath.
      */
     @Internal
     public abstract ConfigurableFileCollection getProjectDeps();
