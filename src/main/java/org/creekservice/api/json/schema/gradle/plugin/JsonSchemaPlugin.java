@@ -18,9 +18,11 @@ package org.creekservice.api.json.schema.gradle.plugin;
 
 import static org.creekservice.api.json.schema.gradle.plugin.GeneratorVersion.defaultGeneratorVersion;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.creekservice.api.json.schema.gradle.plugin.task.GenerateJsonSchema;
@@ -129,6 +131,7 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
                         afterEvaluate(
                                 proj,
                                 GENERATE_SCHEMA_TASK_NAME,
+                                SourceSet.MAIN_SOURCE_SET_NAME,
                                 JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME,
                                 List.of(
                                         JavaPlugin.COMPILE_JAVA_TASK_NAME,
@@ -157,6 +160,7 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
                         afterEvaluate(
                                 proj,
                                 GENERATE_TEST_SCHEMA_TASK_NAME,
+                                SourceSet.TEST_SOURCE_SET_NAME,
                                 JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME,
                                 List.of(
                                         JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME,
@@ -221,6 +225,7 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
     private void afterEvaluate(
             final Project project,
             final String generateTaskName,
+            final String sourceSetName,
             final String compileConfigName,
             final List<String> compileTaskNames,
             final String resourceTaskName) {
@@ -236,13 +241,18 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
 
         final Set<Task> compileTasks = collectTasks(project, compileTaskNames);
 
-        compileTasks.forEach(
-                compileTask -> {
-                    generateTask.dependsOn(compileTask);
-                    generateTask.getClassFiles().from(compileTask.getOutputs());
+        compileTasks.forEach(generateTask::dependsOn);
+
+        final Optional<SourceSet> sourceSet = findSourceSet(project, sourceSetName);
+
+        sourceSet.ifPresent(
+                ss -> {
+                    final Set<File> classesDirs = ss.getOutput().getClassesDirs().getFiles();
+                    generateTask.getClassFiles().from(classesDirs);
                 });
 
-        generateTask.onlyIf(t -> compileTasks.stream().anyMatch(Task::getDidWork));
+        final boolean hasSource = sourceSet.map(ss -> !ss.getAllSource().isEmpty()).orElse(false);
+        generateTask.onlyIf(t -> hasSource);
 
         project.getTasksByName(resourceTaskName, false)
                 .forEach(processTask -> processTask.dependsOn(generateTask));
@@ -253,6 +263,17 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
                 .map(taskName -> project.getTasksByName(taskName, false))
                 .flatMap(Set::stream)
                 .collect(Collectors.toUnmodifiableSet());
+    }
+
+    private static Optional<SourceSet> findSourceSet(
+            final Project project, final String sourceSetName) {
+        final SourceSetContainer sourceSetContainer =
+                project.getExtensions().findByType(SourceSetContainer.class);
+        if (sourceSetContainer == null) {
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable(sourceSetContainer.findByName(sourceSetName));
     }
 
     private <T extends ExtensionAware> ExtensionAware ensureExtension(
