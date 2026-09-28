@@ -39,7 +39,7 @@ allprojects {
 }
 
 val creekVersion = project.version
-val junitVersion = project.property("junitVersion") as String
+val junitVersion = property("junitVersion") as String
 
 dependencies {
     // Avoid non-test dependencies in plugins.
