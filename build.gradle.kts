@@ -39,11 +39,7 @@ allprojects {
 }
 
 val creekVersion = project.version
-val guavaVersion = "33.7.1-jre"               // https://mvnrepository.com/artifact/com.google.guava/guava
-val log4jVersion = "2.26.1"                 // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
-val junitVersion = "6.1.3"                  // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
-val junitPioneerVersion = "2.3.0"           // https://mvnrepository.com/artifact/org.junit-pioneer/junit-pioneer
-val mockitoVersion = "5.23.0"                // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
+val junitVersion = property("junitVersion") as String
 
 dependencies {
     // Avoid non-test dependencies in plugins.
@@ -53,10 +49,10 @@ dependencies {
     testImplementation("org.creekservice:creek-test-conformity:$creekVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
-    testImplementation("org.junit-pioneer:junit-pioneer:$junitPioneerVersion")
-    testImplementation("org.mockito:mockito-junit-jupiter:$mockitoVersion")
-    testImplementation("com.google.guava:guava-testlib:$guavaVersion")
-    testRuntimeOnly("org.apache.logging.log4j:log4j-slf4j2-impl:$log4jVersion")
+    testImplementation("org.junit-pioneer:junit-pioneer:${property("junitPioneerVersion")}")
+    testImplementation("org.mockito:mockito-junit-jupiter:${property("mockitoVersion")}")
+    testImplementation("com.google.guava:guava-testlib:${property("guavaVersion")}")
+    testRuntimeOnly("org.apache.logging.log4j:log4j-slf4j2-impl:${property("log4jVersion")}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
     // The following dependency is only added to force GitHub Dependency Bot to take the generator version into account
     testRuntimeOnly("org.creekservice:creek-json-schema-generator:$creekVersion")
