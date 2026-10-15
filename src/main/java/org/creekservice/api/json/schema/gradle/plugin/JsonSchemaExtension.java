@@ -40,12 +40,14 @@ public abstract class JsonSchemaExtension implements ExtensionAware {
          *
          * <p>Allowed module names can include the glob wildcard {@code *} character.
          *
-         * <p>Default: empty, meaning all modules will be scanned.
+         * <p>Default: the source set's module, if its compiled output contains a {@code
+         * module-info.class}; otherwise empty, meaning all modules will be scanned. An explicitly
+         * configured list (including an empty list) replaces this default.
          *
-         * <p><b>NOTE</b>: Setting a non-empty module whitelist also causes the schema generator to
-         * be executed from the module-path, rather than the default class-path, i.e. the generator
-         * will run under the JPMS. This can run into issues with split packages, i.e. the same
-         * package exposed from multiple jars.
+         * <p><b>NOTE</b>: A non-empty module whitelist, whether inferred or configured, causes the
+         * schema generator to be executed from the module-path rather than the class-path, i.e. the
+         * generator will run under the JPMS. This can run into issues with split packages, i.e. the
+         * same package exposed from multiple jars.
          *
          * @return the module whitelist property
          */

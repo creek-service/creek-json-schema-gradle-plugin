@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -435,6 +436,204 @@ class GenerateJsonSchemaTest {
     }
 
     @CartesianTest
+    @MethodFactory("flavoursAndVersions")
+    void shouldInferMainModuleWithoutConfiguration(final String flavour, final String gradleVersion)
+            throws IOException {
+        // Given:
+        givenProject(flavour + "/generates_schema/java-module");
+        removeModuleWhitelist(flavour);
+
+        // When:
+        final BuildResult result =
+                executeTask(GENERATE_TASK_NAME, ExpectedOutcome.PASS, gradleVersion, "--info");
+
+        // Then:
+        assertThat(result.task(GENERATE_TASK_NAME).getOutcome(), is(SUCCESS));
+        assertThat(
+                result.getOutput(), containsString("--type-scanning-allowed-module=acme.models"));
+        assertThat(
+                result.getOutput(),
+                containsString("--subtype-scanning-allowed-module=acme.models"));
+        assertThat(result.getOutput(), containsString("useModulePath: true"));
+        assertThat(
+                Files.exists(
+                        projectDir.resolve("build/generated/resources/schema/main/acme/Model.yml")),
+                is(true));
+    }
+
+    @CartesianTest
+    @MethodFactory("flavoursAndVersions")
+    void shouldRespectExplicitEmptyModuleWhitelists(
+            final String flavour, final String gradleVersion) throws IOException {
+        // Given:
+        givenProject(flavour + "/generates_schema/java-module");
+        removeModuleWhitelist(flavour);
+        appendConfiguration(
+                flavour,
+                flavour.equals("groovy")
+                        ? "creek.schema.json {\n"
+                                + "    typeScanning.moduleWhiteList = []\n"
+                                + "    subTypeScanning.moduleWhiteList = []\n"
+                                + "}\n"
+                        : "creek.schema.json {\n"
+                                + "    typeScanning.moduleWhiteList.set(emptyList())\n"
+                                + "    subTypeScanning.moduleWhiteList.set(emptyList())\n"
+                                + "}\n");
+
+        // When:
+        final BuildResult result =
+                executeTask(GENERATE_TASK_NAME, ExpectedOutcome.PASS, gradleVersion, "--info");
+
+        // Then:
+        assertThat(result.task(GENERATE_TASK_NAME).getOutcome(), is(SUCCESS));
+        assertThat(result.getOutput(), containsString("useModulePath: false"));
+        assertThat(result.getOutput(), not(containsString("--type-scanning-allowed-module=")));
+        assertThat(result.getOutput(), not(containsString("--subtype-scanning-allowed-module=")));
+        assertThat(
+                Files.exists(
+                        projectDir.resolve("build/generated/resources/schema/main/acme/Model.yml")),
+                is(true));
+    }
+
+    @CartesianTest
+    @MethodFactory("flavoursVersionsAndModuleWhitelists")
+    void shouldUseModulePathWhenEitherWhitelistIsNonEmpty(
+            final String flavour, final String gradleVersion, final ModuleWhitelists whitelists)
+            throws IOException {
+        // Given:
+        givenProject(flavour + "/default");
+        final String typeModules = whitelists.type ? "['acme.models']" : "[]";
+        final String subtypeModules = whitelists.subtype ? "['acme.models']" : "[]";
+        appendConfiguration(
+                flavour,
+                flavour.equals("groovy")
+                        ? "\ncreek.schema.json {\n"
+                                + "    typeScanning.moduleWhiteList = "
+                                + typeModules
+                                + "\n"
+                                + "    subTypeScanning.moduleWhiteList = "
+                                + subtypeModules
+                                + "\n"
+                                + "}\n"
+                        : "\ncreek.schema.json {\n"
+                                + "    typeScanning.moduleWhiteList.set("
+                                + (whitelists.type ? "listOf(\"acme.models\")" : "emptyList()")
+                                + ")\n"
+                                + "    subTypeScanning.moduleWhiteList.set("
+                                + (whitelists.subtype ? "listOf(\"acme.models\")" : "emptyList()")
+                                + ")\n"
+                                + "}\n");
+
+        // When:
+        final BuildResult result =
+                executeTask(GENERATE_TASK_NAME, ExpectedOutcome.PASS, gradleVersion, "--info");
+
+        // Then:
+        assertThat(result.task(GENERATE_TASK_NAME).getOutcome(), is(SUCCESS));
+        assertThat(
+                result.getOutput(),
+                containsString("useModulePath: " + (whitelists.type || whitelists.subtype)));
+        assertThat(
+                result.getOutput(),
+                containsString(
+                        "--type-scanning-allowed-modules="
+                                + (whitelists.type ? "[acme.models]" : "<ANY>")));
+        assertThat(
+                result.getOutput(),
+                containsString(
+                        "--subtype-scanning-allowed-modules="
+                                + (whitelists.subtype ? "[acme.models]" : "<ANY>")));
+    }
+
+    @CartesianTest
+    @MethodFactory("flavoursAndVersions")
+    void shouldRespectIndependentModuleOverrides(final String flavour, final String gradleVersion)
+            throws IOException {
+        // Given:
+        givenProject(flavour + "/generates_schema/java-module");
+        removeModuleWhitelist(flavour);
+        appendConfiguration(
+                flavour,
+                flavour.equals("groovy")
+                        ? "creek.schema.json { typeScanning.moduleWhiteList = ['another.module']"
+                                + " }\n"
+                        : "creek.schema.json {"
+                                + " typeScanning.moduleWhiteList.set(listOf(\"another.module\"))"
+                                + " }\n");
+
+        // When:
+        final BuildResult result =
+                executeTask(
+                        GENERATE_TASK_NAME,
+                        ExpectedOutcome.PASS,
+                        gradleVersion,
+                        "--extra-argument=--echo-only");
+
+        // Then:
+        assertThat(
+                result.getOutput(),
+                containsString("--type-scanning-allowed-modules=[another.module]"));
+        assertThat(
+                result.getOutput(),
+                containsString("--subtype-scanning-allowed-modules=[acme.models]"));
+    }
+
+    @CartesianTest
+    @MethodFactory("flavoursAndVersions")
+    void shouldNotInferMainModuleForNonModularTests(
+            final String flavour, final String gradleVersion) throws IOException {
+        // Given:
+        givenProject(flavour + "/generates_test_schema/java-module");
+        removeModuleWhitelist(flavour);
+
+        // When:
+        final BuildResult result =
+                executeTask(GENERATE_TEST_TASK_NAME, ExpectedOutcome.PASS, gradleVersion, "--info");
+
+        // Then:
+        assertThat(result.task(GENERATE_TEST_TASK_NAME).getOutcome(), is(SUCCESS));
+        assertThat(result.getOutput(), containsString("useModulePath: false"));
+        assertThat(
+                Files.exists(
+                        projectDir.resolve("build/generated/resources/schema/test/acme/Model.yml")),
+                is(true));
+    }
+
+    @CartesianTest
+    @MethodFactory("flavoursAndVersions")
+    void shouldInferSeparateTestModule(final String flavour, final String gradleVersion)
+            throws IOException {
+        // Given:
+        givenProject(flavour + "/generates_test_schema/java");
+        Files.writeString(
+                projectDir.resolve("src/test/java/module-info.java"),
+                "module acme.test.models {\n"
+                        + "    requires creek.base.annotation;\n"
+                        + (flavour.equals("kotlin") ? "    requires com.google.common;\n" : "")
+                        + "    requires org.junit.jupiter.api;\n"
+                        + "    exports acme;\n"
+                        + "}\n");
+
+        // When:
+        final BuildResult result =
+                executeTask(GENERATE_TEST_TASK_NAME, ExpectedOutcome.PASS, gradleVersion, "--info");
+
+        // Then:
+        assertThat(result.task(GENERATE_TEST_TASK_NAME).getOutcome(), is(SUCCESS));
+        assertThat(
+                result.getOutput(),
+                containsString("--type-scanning-allowed-module=acme.test.models"));
+        assertThat(
+                result.getOutput(),
+                containsString("--subtype-scanning-allowed-module=acme.test.models"));
+        assertThat(result.getOutput(), containsString("useModulePath: true"));
+        assertThat(
+                Files.exists(
+                        projectDir.resolve("build/generated/resources/schema/test/acme/Model.yml")),
+                is(true));
+    }
+
+    @CartesianTest
     @MethodFactory("flavoursVersionsAndLanguage")
     void shouldRegenerateWhenOutputDirectoryDeleted(
             final String flavour, final String gradleVersion, final String language) {
@@ -537,6 +736,30 @@ class GenerateJsonSchemaTest {
         TestPaths.copy(TEST_DIR.resolve(projectPath), projectDir);
     }
 
+    private void removeModuleWhitelist(final String flavour) throws IOException {
+        final Path script = buildScript(flavour);
+        final String original = Files.readString(script);
+        final String withoutWhitelist =
+                original.replaceAll(
+                        "(?s)creek\\.schema\\.json \\{\\s*typeScanning\\.moduleWhiteList[^}]*}",
+                        "");
+        assertThat("Fixture must have a whitelist", withoutWhitelist, is(not(original)));
+        Files.writeString(script, withoutWhitelist, StandardCharsets.UTF_8);
+    }
+
+    private void appendConfiguration(final String flavour, final String configuration)
+            throws IOException {
+        Files.writeString(
+                buildScript(flavour),
+                configuration,
+                StandardCharsets.UTF_8,
+                java.nio.file.StandardOpenOption.APPEND);
+    }
+
+    private Path buildScript(final String flavour) {
+        return projectDir.resolve(flavour.equals("groovy") ? "build.gradle" : "build.gradle.kts");
+    }
+
     private Path givenDirectory(final Path path) {
         TestPaths.ensureDirectories(path);
         return path;
@@ -549,6 +772,21 @@ class GenerateJsonSchemaTest {
     private enum ExpectedOutcome {
         PASS,
         FAIL
+    }
+
+    private enum ModuleWhitelists {
+        NEITHER(false, false),
+        TYPE_ONLY(true, false),
+        SUBTYPE_ONLY(false, true),
+        BOTH(true, true);
+
+        private final boolean type;
+        private final boolean subtype;
+
+        ModuleWhitelists(final boolean type, final boolean subtype) {
+            this.type = type;
+            this.subtype = subtype;
+        }
     }
 
     private BuildResult executeTask(
@@ -645,6 +883,11 @@ class GenerateJsonSchemaTest {
     private static ArgumentSets flavoursVersionsAndLanguage() {
         final Collection<?> languages = List.of("java", "java-module", "kotlin", "groovy");
         return flavoursAndVersions().argumentsForNextParameter(languages);
+    }
+
+    @SuppressWarnings("unused") // Invoked by reflection
+    private static ArgumentSets flavoursVersionsAndModuleWhitelists() {
+        return flavoursAndVersions().argumentsForNextParameter(List.of(ModuleWhitelists.values()));
     }
 
     private static boolean supported(final String gradleVersion, final String language) {

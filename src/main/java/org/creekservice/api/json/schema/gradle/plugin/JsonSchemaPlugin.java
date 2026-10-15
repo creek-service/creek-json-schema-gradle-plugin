@@ -74,7 +74,6 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
     /** Artifact name for generator */
     public static final String GENERATOR_DEP_ARTEFACT_NAME = "creek-json-schema-generator";
 
-    private static final List<String> ALL_MODULES = List.of();
     private static final List<String> ALL_PACKAGES = List.of();
 
     @Override
@@ -95,9 +94,9 @@ public final class JsonSchemaPlugin implements Plugin<Project> {
         final JsonSchemaExtension extension =
                 schemaExt.getExtensions().create(JSON_EXTENSION_NAME, JsonSchemaExtension.class);
 
-        extension.getTypeScanning().getModuleWhiteList().convention(ALL_MODULES);
+        extension.getTypeScanning().getModuleWhiteList().convention((List<String>) null);
         extension.getTypeScanning().getPackageWhiteListed().convention(ALL_PACKAGES);
-        extension.getSubtypeScanning().getModuleWhiteList().convention(ALL_MODULES);
+        extension.getSubtypeScanning().getModuleWhiteList().convention((List<String>) null);
         extension.getSubtypeScanning().getPackageWhiteListed().convention(ALL_PACKAGES);
         extension
                 .getSchemaResourceRoot()
