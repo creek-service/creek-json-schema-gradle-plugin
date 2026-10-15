@@ -36,7 +36,8 @@ The JSON Schema plugin adds the following tasks to your project:
 > Details of how to annotate classes to control their schema can be found in the [Creek JSON Schema Generator docs][1].
 
 > ### NOTE
-> Restricting class & module path scanning by setting allowed modules and allowed packages can increase the speed of your build. 
+> Restricting class and module path scanning by setting allowed modules and allowed packages can increase the speed of your build.
+> Modular source sets default to scanning their own module.
 
 *Dependencies:* `compileJava`, `compileKotlin`, `compileGroovy` if they exist.
 *Dependants:* `processResources`
@@ -52,11 +53,11 @@ See the [Creel JSON Schema Generator Docs][1] for more information and examples.
 Aside from the customisations possible using the [`creek.schema.json` extension](#json-schema-extension), the task accepts the
 following command line options:
 
-* `--type-scanning-allowed-module`: (default: any module) restricts the classes to search to only those belonging to the specified module(s).
+* `--type-scanning-allowed-module`: (default: the source set's JPMS module, or any module for non-modular source sets) restricts the classes to search to only those belonging to the specified module(s).
   Allowed module names can include the glob wildcard {@code *} character.
 * `--type-scanning-allowed-package`: (default: any package) restricts the classes to search to only those under the specified package(s).
   Allowed package names can include the glob wildcard {@code *} character.
-* `--subtype-scanning-allowed-module`: (default: any module) restricts the search for subtypes to only those belonging to the specified module(s).
+* `--subtype-scanning-allowed-module`: (default: the source set's JPMS module, or any module for non-modular source sets) restricts the search for subtypes to only those belonging to the specified module(s).
   Allowed module names can include the glob wildcard {@code *} character.
 * `--subtype-scanning-allowed-package`: (default: any package) restrict the search for subtypes to only those under the specified package(s).
   Allowed package names can include the glob wildcard {@code *} character.
@@ -213,8 +214,21 @@ The [generator][1] scans the class and module paths of the JVM to find:
 * **subtypes** of polymorphic types it encounters while building schema, where the base type does not define an explicit
   set of subtypes, i.e. types annotated with `@JsonTypeInfo`, but not `@JsonSubTypes`.
 
-By default, these scans scan the entire class and module paths of the JVM. This can both slow down your build and result
-in unwanted schema files being generated for annotated types found in dependencies.
+For a source set with a compiled `module-info.class`, both scans default to that source set's
+JPMS module. `generateJsonSchema` uses the main descriptor; `generateTestJsonSchema` uses a
+separate test descriptor if there is one. A test source set without its own descriptor (including
+tests run by patching the main module) retains the unrestricted defaults: the schema generator
+does not inherit the `test` task's module-patching JVM arguments.
+
+For non-modular source sets, both scans default to the entire class path. This can slow down your
+build and result in unwanted schema files being generated for annotated types found in dependencies.
+
+Each configured module whitelist replaces its inferred default independently. Set a whitelist to
+an empty list to scan all modules, or list the project module and additional dependency modules to
+include their annotated types or subtypes. With both whitelists empty, the generator runs on the
+class path; a non-empty whitelist switches it to the module path. Thus, explicitly clearing only
+one whitelist in a modular project does not switch execution back to the class path while the
+other is still non-empty. Command-line task options override the corresponding configured list.
 
 The path scans can be restricted to exclude unwanted types from schema generation and speed up the build. 
 

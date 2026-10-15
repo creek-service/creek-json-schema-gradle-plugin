@@ -19,6 +19,9 @@ package org.creekservice.api.json.schema.gradle.plugin.task;
 import static org.creekservice.api.json.schema.gradle.plugin.JsonSchemaPlugin.GENERATOR_DEP_ARTEFACT_NAME;
 import static org.creekservice.api.json.schema.gradle.plugin.JsonSchemaPlugin.GENERATOR_DEP_GROUP_NAME;
 
+import java.io.IOException;
+import java.lang.module.ModuleDescriptor;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +37,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -78,11 +82,13 @@ public abstract class GenerateJsonSchema extends DefaultTask {
      *
      * <p>Setting this will speed up schema generation.
      *
-     * <p>Default: empty, meaning all modules.
+     * <p>Default: the source set's module if its compiled output contains a module descriptor;
+     * otherwise empty, meaning all modules.
      *
      * @return type scanning module white list property.
      */
     @Input
+    @org.gradle.api.tasks.Optional
     public abstract ListProperty<String> getTypeScanningModuleWhiteList();
 
     /**
@@ -138,11 +144,13 @@ public abstract class GenerateJsonSchema extends DefaultTask {
      *
      * <p>Setting this will speed up schema generation.
      *
-     * <p>Default: empty, meaning all modules.
+     * <p>Default: the source set's module if its compiled output contains a module descriptor;
+     * otherwise empty, meaning all modules.
      *
      * @return subtype scanning module white list property.
      */
     @Input
+    @org.gradle.api.tasks.Optional
     public abstract ListProperty<String> getSubtypeScanningModuleWhiteList();
 
     /**
@@ -279,9 +287,13 @@ public abstract class GenerateJsonSchema extends DefaultTask {
     public void run() {
         checkDependenciesIncludesRunner();
 
-        final boolean useModulePath = useModulePath();
-        final List<String> arguments = arguments();
-        final List<String> jvmArgs = jvmArgs();
+        final Provider<List<String>> inferred = getProject().provider(this::inferredModule);
+        final List<String> typeModules = getTypeScanningModuleWhiteList().orElse(inferred).get();
+        final List<String> subtypeModules =
+                getSubtypeScanningModuleWhiteList().orElse(inferred).get();
+        final boolean useModulePath = !typeModules.isEmpty() || !subtypeModules.isEmpty();
+        final List<String> arguments = arguments(typeModules, subtypeModules);
+        final List<String> jvmArgs = jvmArgs(useModulePath);
 
         getLogger().info("Executing JSON schema generator with:");
         getLogger().info("useModulePath: {}", useModulePath);
@@ -302,12 +314,26 @@ public abstract class GenerateJsonSchema extends DefaultTask {
                 });
     }
 
-    private boolean useModulePath() {
-        // If module white lists are provided, run from module-path,
-        // Otherwise, from class-path, as some languages, e.g. Groovy, don't play well with
-        // module-path yet.
-        return !getTypeScanningModuleWhiteList().getOrElse(List.of()).isEmpty()
-                || !getSubtypeScanningModuleWhiteList().getOrElse(List.of()).isEmpty();
+    private List<String> inferredModule() {
+        final List<Path> descriptors =
+                getClassFiles().getFiles().stream()
+                        .map(dir -> dir.toPath().resolve("module-info.class"))
+                        .filter(Files::isRegularFile)
+                        .toList();
+        if (descriptors.isEmpty()) {
+            return List.of();
+        }
+        if (descriptors.size() != 1) {
+            throw new GradleException(
+                    "Multiple module descriptors found for " + getPath() + ": " + descriptors);
+        }
+
+        final Path descriptor = descriptors.get(0);
+        try (var input = Files.newInputStream(descriptor)) {
+            return List.of(ModuleDescriptor.read(input).name());
+        } catch (final IOException | IllegalArgumentException e) {
+            throw new GradleException("Failed to read module descriptor " + descriptor, e);
+        }
     }
 
     private void checkDependenciesIncludesRunner() {
@@ -330,7 +356,8 @@ public abstract class GenerateJsonSchema extends DefaultTask {
         getLogger().debug("Using system test executor version: " + executorDep.get().getVersion());
     }
 
-    private List<String> arguments() {
+    private List<String> arguments(
+            final List<String> typeModules, final List<String> subtypeModules) {
         final List<String> arguments = new ArrayList<>();
 
         final Path outputRoot = getSchemaResourceRoot().getAsFile().get().toPath().toAbsolutePath();
@@ -343,15 +370,11 @@ public abstract class GenerateJsonSchema extends DefaultTask {
             arguments.add("--output-strategy=flatDirectory");
         }
 
-        getTypeScanningModuleWhiteList()
-                .get()
-                .forEach(name -> arguments.add("--type-scanning-allowed-module=" + name));
+        typeModules.forEach(name -> arguments.add("--type-scanning-allowed-module=" + name));
         getTypeScanningPackageWhiteList()
                 .get()
                 .forEach(name -> arguments.add("--type-scanning-allowed-package=" + name));
-        getSubtypeScanningModuleWhiteList()
-                .get()
-                .forEach(name -> arguments.add("--subtype-scanning-allowed-module=" + name));
+        subtypeModules.forEach(name -> arguments.add("--subtype-scanning-allowed-module=" + name));
         getSubtypeScanningPackageWhiteList()
                 .get()
                 .forEach(name -> arguments.add("--subtype-scanning-allowed-package=" + name));
@@ -360,9 +383,9 @@ public abstract class GenerateJsonSchema extends DefaultTask {
         return arguments;
     }
 
-    private List<String> jvmArgs() {
+    private List<String> jvmArgs(final boolean useModulePath) {
         final List<String> args = new ArrayList<>();
-        if (useModulePath()) {
+        if (useModulePath) {
             args.add("--add-modules=ALL-MODULE-PATH");
         }
 
