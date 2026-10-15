@@ -496,6 +496,56 @@ class GenerateJsonSchemaTest {
     }
 
     @CartesianTest
+    @MethodFactory("flavoursVersionsAndModuleWhitelists")
+    void shouldUseModulePathWhenEitherWhitelistIsNonEmpty(
+            final String flavour, final String gradleVersion, final ModuleWhitelists whitelists)
+            throws IOException {
+        // Given:
+        givenProject(flavour + "/default");
+        final String typeModules = whitelists.type ? "['acme.models']" : "[]";
+        final String subtypeModules = whitelists.subtype ? "['acme.models']" : "[]";
+        appendConfiguration(
+                flavour,
+                flavour.equals("groovy")
+                        ? "\ncreek.schema.json {\n"
+                                + "    typeScanning.moduleWhiteList = "
+                                + typeModules
+                                + "\n"
+                                + "    subTypeScanning.moduleWhiteList = "
+                                + subtypeModules
+                                + "\n"
+                                + "}\n"
+                        : "\ncreek.schema.json {\n"
+                                + "    typeScanning.moduleWhiteList.set("
+                                + (whitelists.type ? "listOf(\"acme.models\")" : "emptyList()")
+                                + ")\n"
+                                + "    subTypeScanning.moduleWhiteList.set("
+                                + (whitelists.subtype ? "listOf(\"acme.models\")" : "emptyList()")
+                                + ")\n"
+                                + "}\n");
+
+        // When:
+        final BuildResult result =
+                executeTask(GENERATE_TASK_NAME, ExpectedOutcome.PASS, gradleVersion, "--info");
+
+        // Then:
+        assertThat(result.task(GENERATE_TASK_NAME).getOutcome(), is(SUCCESS));
+        assertThat(
+                result.getOutput(),
+                containsString("useModulePath: " + (whitelists.type || whitelists.subtype)));
+        assertThat(
+                result.getOutput(),
+                containsString(
+                        "--type-scanning-allowed-modules="
+                                + (whitelists.type ? "[acme.models]" : "<ANY>")));
+        assertThat(
+                result.getOutput(),
+                containsString(
+                        "--subtype-scanning-allowed-modules="
+                                + (whitelists.subtype ? "[acme.models]" : "<ANY>")));
+    }
+
+    @CartesianTest
     @MethodFactory("flavoursAndVersions")
     void shouldRespectIndependentModuleOverrides(final String flavour, final String gradleVersion)
             throws IOException {
@@ -724,6 +774,21 @@ class GenerateJsonSchemaTest {
         FAIL
     }
 
+    private enum ModuleWhitelists {
+        NEITHER(false, false),
+        TYPE_ONLY(true, false),
+        SUBTYPE_ONLY(false, true),
+        BOTH(true, true);
+
+        private final boolean type;
+        private final boolean subtype;
+
+        ModuleWhitelists(final boolean type, final boolean subtype) {
+            this.type = type;
+            this.subtype = subtype;
+        }
+    }
+
     private BuildResult executeTask(
             final String taskName,
             final ExpectedOutcome expectedOutcome,
@@ -818,6 +883,11 @@ class GenerateJsonSchemaTest {
     private static ArgumentSets flavoursVersionsAndLanguage() {
         final Collection<?> languages = List.of("java", "java-module", "kotlin", "groovy");
         return flavoursAndVersions().argumentsForNextParameter(languages);
+    }
+
+    @SuppressWarnings("unused") // Invoked by reflection
+    private static ArgumentSets flavoursVersionsAndModuleWhitelists() {
+        return flavoursAndVersions().argumentsForNextParameter(List.of(ModuleWhitelists.values()));
     }
 
     private static boolean supported(final String gradleVersion, final String language) {
